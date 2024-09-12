@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package user;
+
+message Item {
+  string ID = 1;  // item instance id （unique id）
+  int32 DictID = 2;  // dictionary id （config id）
+  int32 Num = 3; 
+}
+
+message ItemList {
+  repeated Item Items = 1;
+}
+
+// -----------------  entity module -----------------\
+message EntityBagModule {
+  string ID = 1;  // actor id
+  map<int32, ItemList> Bag = 2;
+}
+
+message EntityTimeInfoModule {
+  string ID = 1;  // actor id
+
+  int64 LoginTime = 2;
+  int64 SyncTime = 3;
+  int64 CreateTime = 4;
+}
+
+message AirshipProduction {
+  string ProductionID = 1;
+  int64 EndTime = 3;
+}
+
+message EntityAirshipModule {
+  string ID = 1; // actor id
+
+  AirshipProduction Production = 2; // build queue
+}
+
+// -----------------  entity -----------------
+message EntityUserModule {
+  string ID = 1; // account actor id
+  string OpenID = 2; // 3rd party open id
+  string Token = 3;
+  repeated string ChatChannels = 4; // Current chat channels the user is in
+}

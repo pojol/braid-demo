@@ -23,14 +23,15 @@ func main() {
 	nod := node.BuildProcessWithOption(
 		core.WithSystem(
 			node.BuildSystemWithOption(
-				node.SystemActorConstructor([]node.ActorConstructor{
-					{Type: "httpHelloActor", Constructor: actors.NewHttpHelloActor},
-				}),
+				node.SystemActorConstructor(actors.GetConstructors()),
 			),
 		),
 	)
 
-	helloActor, err := nod.System().Register(context.TODO(), "httpHelloActor", core.CreateActorWithID("1"))
+	helloActor, err := nod.System().Register(context.TODO(), actors.HttpHelloActor,
+		core.CreateActorWithID("1"),
+		core.CreateActorWithOption("port", "8008"),
+	)
 	if err != nil {
 		panic(err)
 	}

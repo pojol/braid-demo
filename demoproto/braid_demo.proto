@@ -9,3 +9,20 @@ message HelloReq {
 message HelloResp {
     string message = 1;
 }
+
+message CrudUseItemReq {
+    int32 ItemID = 1;
+    int32 ItemNum = 2;
+}
+
+message CrudUseItemResp {
+    
+}
+
+
+message ChatMessage {
+    string From = 1;
+    string Content = 2;
+    int64 Time = 3;
+    map<string, string> Meta = 4; // 自定义描述结构（工会名，地域，称号 ？
+}

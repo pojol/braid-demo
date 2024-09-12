@@ -24,9 +24,9 @@ type httpHelloActor struct {
 
 func NewHttpHelloActor(p *core.CreateActorParm) core.IActor {
 	return &httpHelloActor{
-		Runtime: &actor.Runtime{Id: p.ID, Ty: "httpHelloActor", Sys: p.Sys},
+		Runtime: &actor.Runtime{Id: p.ID, Ty: HttpHelloActor, Sys: p.Sys},
 		echoptr: echo.New(),
-		Port:    "8008",
+		Port:    p.Options["port"].(string),
 	}
 }
 
