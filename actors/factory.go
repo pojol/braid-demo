@@ -7,26 +7,26 @@ import (
 	"github.com/pojol/braid/core/cluster/node"
 )
 
-// ActorFactory 用于创建所有类型的 actors
+// ActorFactory is a factory for creating actors
 type ActorFactory struct {
 	constructors map[string]core.CreateFunc
 }
 
 var factory *ActorFactory
 
-// NewActorFactory 创建一个新的 ActorFactory
+// NewActorFactory create new actor factory
 func newActorFactory() {
 	factory = &ActorFactory{
 		constructors: make(map[string]core.CreateFunc),
 	}
 }
 
-// Register 注册一个 actor 类型和其构造函数
+// Register registers an actor type and its constructor function
 func register(actorType string, f core.CreateFunc) {
 	factory.constructors[actorType] = f
 }
 
-// GetConstructors 返回所有注册的构造函数
+// GetConstructors returns all registered constructor functions
 func GetConstructors() []node.ActorConstructor {
 	constructors := make([]node.ActorConstructor, 0, len(factory.constructors))
 	for ty, cf := range factory.constructors {
