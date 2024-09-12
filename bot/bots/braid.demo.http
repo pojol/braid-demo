@@ -1,0 +1,60 @@
+<behavior>
+  <id>14bcccc7-f3e0-41db-b4e1-df8ac960f178</id>
+  <pos>
+    <x>390</x>
+    <y>100</y>
+  </pos>
+  <ty>RootNode</ty>
+  <children>
+    <id>9aa87691-7576-412e-90b5-b7a97bebe668</id>
+    <ty>http_request</ty>
+    <code>local parm = {
+    body = {
+  	},    -- request body
+    timeout = &#34;10s&#34;,
+    headers = {
+  	},
+}
+
+-- REMOTE 可以存放在 global 脚本中（editor/config/global 便于统一修改
+local url = &#34;http://127.0.0.1:8008/hello&#34;
+-- 载入预设的模块
+local http = require(&#34;http&#34;)
+local utils = require(&#34;utils&#34;)
+local proto = require(&#34;proto&#34;)
+--
+
+function execute()
+
+    parm.body, errmsg = proto.marshal(&#34;demoproto.HelloReq&#34;, json.encode({
+        name = utils.uuid(),
+    }))
+    if errmsg ~= nil then
+        bot.Meta.Err = &#34;proto.marshal&#34; .. errmsg
+        return
+    end
+  
+    res, errmsg = http.post(url, parm)
+    if errmsg ~= nil then
+        Bot.Meta.Err = errmsg
+        return
+    end
+
+    if res[&#34;status_code&#34;] ~= 200 then
+        Bot.Meta.Err = &#34;post &#34; .. url .. &#34; http status code err &#34; .. res[&#34;status_code&#34;]
+        return
+    end
+
+    return state.Succ, body -- 将http response传递给 editor 中的 response 栏
+end
+
+</code>
+    <loop>1</loop>
+    <wait>1</wait>
+    <pos>
+      <x>395</x>
+      <y>174</y>
+    </pos>
+    <alias>hello</alias>
+  </children>
+</behavior>
