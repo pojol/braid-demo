@@ -7,6 +7,9 @@ import "commproto/comm.proto";
 // -----------------  entity module -----------------\
 message EntityBagModule {
   string ID = 1;  // actor id
+  
+  // key: Dictionary ID of the item
+  // value: For a given dictionary ID, there may be multiple non-stackable item instances
   map<int32, commproto.ItemList> Bag = 2;
 }
 
@@ -34,5 +37,7 @@ message EntityUserModule {
   string ID = 1; // account actor id
   string OpenID = 2; // 3rd party open id
   string Token = 3;
-  repeated string ChatChannels = 4; // Current chat channels the user is in
+
+  string CurChannel = 4;
+  repeated string ChatChannels = 5; // Current chat channels the user is in
 }

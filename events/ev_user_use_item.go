@@ -19,7 +19,7 @@ func MakeUserUseItem() core.IChain {
 		Handler: func(ctx context.Context, mw *router.MsgWrapper) error {
 
 			req := unpackCfg.Msg.(*gameproto.CrudUseItemReq)
-			fmt.Println("req use item id:", req.ItemID)
+			fmt.Println("req use item id:", req.Items)
 
 			return nil
 		},
