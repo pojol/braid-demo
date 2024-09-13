@@ -21,6 +21,9 @@ func main() {
 	// mock redis
 	redis.BuildClientWithOption(redis.WithAddr("redis://127.0.0.1:6379/0"))
 
+	service := "barid"
+	nodeid := "xxx"
+
 	nod := node.BuildProcessWithOption(
 		core.WithSystem(
 			node.BuildSystemWithOption(
@@ -29,9 +32,16 @@ func main() {
 		),
 	)
 
-	helloActor, err := nod.System().Register(context.TODO(), constant.ActorHttpAcceptor,
-		core.CreateActorWithID("1"),
+	wsAcceptorActor, err := nod.System().Register(context.TODO(), constant.ActorWebsoketAcceptor,
+		core.CreateActorWithID(service+"-"+nodeid+"-"+constant.ActorLogin),
 		core.CreateActorWithOption("port", "8008"),
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	chatActor, err := nod.System().Register(context.TODO(), constant.ActorChat,
+		core.CreateActorWithID(service+"-"+nodeid+"-"+constant.ActorChat),
 	)
 	if err != nil {
 		panic(err)
@@ -42,10 +52,11 @@ func main() {
 		panic(fmt.Errorf("node init err %v", err.Error()))
 	}
 
-	helloActor.RegisterEvent("hello", events.HttpHello())
+	wsAcceptorActor.RegisterEvent(events.EvLogin, events.MakeWSLogin())
+	chatActor.RegisterEvent(events.EvChatSendMessage, events.MakeChatSendCmd(nod.System()))
 
 	nod.Update()
 
-	fmt.Println("start http server succ")
+	fmt.Println("start websocket server succ")
 	nod.WaitClose() // watch node exit signal
 }

@@ -4,7 +4,6 @@ import (
 	"braid-demo/constant"
 	"braid-demo/middleware"
 	"braid-demo/models/gameproto"
-	"braid-demo/models/user"
 	"context"
 	"fmt"
 
@@ -13,7 +12,7 @@ import (
 	"github.com/pojol/braid/router"
 )
 
-func MakeChatSendCmd(entity *user.EntityWrapper, sys core.ISystem) core.IChain {
+func MakeChatSendCmd(sys core.ISystem) core.IChain {
 
 	unpackCfg := &middleware.MessageUnpackCfg[*gameproto.ChatSendReq]{}
 
@@ -27,7 +26,7 @@ func MakeChatSendCmd(entity *user.EntityWrapper, sys core.ISystem) core.IChain {
 			// ...
 
 			if req.Msg.Channel == constant.ChatPrivateChannel {
-				chatActorID := "chat." + constant.ChatPrivateChannel + "." + entity.ID
+				chatActorID := "chat." + constant.ChatPrivateChannel + "." + req.Msg.ReceiverID
 				sys.Call(ctx, router.Target{ID: chatActorID, Ty: constant.ChatPrivateChannel, Ev: EvChatSendMessage},
 					router.NewMsg().Build(),
 				)

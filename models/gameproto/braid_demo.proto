@@ -3,12 +3,17 @@ package gameproto;
 
 import "commproto/comm.proto";
 
+message MsgHeader {
+    string Event = 1;
+    string Token = 2;
+}
+
 message HelloReq {
-    string name = 1;
+    string Name = 1;
 }
 
 message HelloResp {
-    string message = 1;
+    string Message = 1;
 }
 
 message CrudUseItemReq {
@@ -20,11 +25,12 @@ message CrudUseItemResp {
 }
 
 message ChatMessage {
-    string From = 1;
-    string Content = 2;
-    int64 Time = 3;
-    string Channel = 4;
-    map<string, string> Meta = 5; // 自定义描述结构（工会名，地域，称号 ？
+    string SenderID = 1;
+    string ReceiverID = 2;
+    string Content = 3;
+    int64 Time = 4;
+    string Channel = 5;
+    map<string, string> Meta = 6; // 自定义描述结构（工会名，地域，称号 ？
 }
 
 message ChatAddChannelReq {
@@ -44,11 +50,11 @@ message ChatRmvChannelResp {
 }
 
 message ChatSendReq {
-    ChatMessage msg = 1;
+    ChatMessage Msg = 1;
 }
 
 message ChatMessageNotify {
-    repeated ChatMessage msglst = 1;
+    repeated ChatMessage MsgLst = 1;
 }
 
 message ChatSendResp {

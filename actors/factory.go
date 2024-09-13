@@ -43,9 +43,9 @@ func init() {
 	newActorFactory()
 
 	bind(constant.ActorHttpAcceptor, NewHttpAcceptorActor)
+	bind(constant.ActorWebsoketAcceptor, NewWSAcceptorActor)
 	bind(constant.ActorLogin, NewLoginActor)
+	bind(constant.ActorChat, subactors.NewChatActor)
 	bind(constant.ActorUser, NewUserActor)
 
-	bind(constant.ActorChatGlobalChannel, subactors.NewChatActor)
-	bind(constant.ActorChatGuildChannel, subactors.NewChatActor)
 }

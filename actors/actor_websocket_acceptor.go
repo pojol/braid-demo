@@ -2,6 +2,8 @@ package actors
 
 import (
 	"braid-demo/constant"
+	"braid-demo/events"
+	"braid-demo/models/gameproto"
 	"bytes"
 	"context"
 	"encoding/binary"
@@ -10,15 +12,16 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gogo/protobuf/proto"
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/pojol/braid/core"
 	"github.com/pojol/braid/core/actor"
+	"github.com/pojol/braid/def"
 	"github.com/pojol/braid/lib/log"
 	"github.com/pojol/braid/lib/token"
 	"github.com/pojol/braid/router"
-	"go.starlark.net/lib/proto"
 )
 
 type websocketAcceptorActor struct {
@@ -38,8 +41,9 @@ var bufferPool = sync.Pool{
 }
 
 func NewWSAcceptorActor(p *core.CreateActorParm) core.IActor {
-	return &httpAcceptorActor{
-		Runtime: &actor.Runtime{Id: p.ID, Ty: constant.ActorHttpAcceptor, Sys: p.Sys},
+
+	return &websocketAcceptorActor{
+		Runtime: &actor.Runtime{Id: p.ID, Ty: constant.ActorWebsoketAcceptor, Sys: p.Sys},
 		echoptr: echo.New(),
 		Port:    p.Options["port"].(string),
 	}
@@ -85,7 +89,7 @@ func (a *websocketAcceptorActor) Init() {
 				continue
 			}
 
-			header := &gameproto.MsgRequestHeader{}
+			header := &gameproto.MsgHeader{}
 			proto.Unmarshal(msg[2:2+headerlen], header)
 
 			// Create a context with a timeout
@@ -95,11 +99,14 @@ func (a *websocketAcceptorActor) Init() {
 			bh := &router.Header{}
 			var actorid, actorty string
 
-			fmt.Println("[debug] recv msg", header.Msgid)
+			fmt.Println("[debug] recv msg", header.Event)
 
-			if header.Msgid == 10001 { // login
-				actorid = "dispatch-001"
-				actorty = "dispatch"
+			if header.Event == events.EvLogin {
+				actorid = def.SymbolLocalFirst
+				actorty = constant.ActorLogin
+			} else if header.Event == events.EvChatSendMessage {
+				actorid = def.SymbolLocalFirst
+				actorty = constant.ActorChat
 			} else {
 				eid, err := token.Parse(header.Token)
 				if err != nil {
@@ -108,10 +115,8 @@ func (a *websocketAcceptorActor) Init() {
 				}
 
 				actorid = eid
-				actorty = "entity"
+				actorty = constant.ActorUser
 				bh.Token = header.Token
-
-				fmt.Println("entity call", actorid)
 			}
 
 			sendmsg := &router.MsgWrapper{
@@ -123,10 +128,10 @@ func (a *websocketAcceptorActor) Init() {
 			}
 
 			// Perform the system call with the timeout context
-			err = actor.Call(ctx, router.Target{
+			err = a.Call(ctx, router.Target{
 				ID: actorid,
 				Ty: actorty,
-				Ev: strconv.Itoa(int(header.Msgid)),
+				Ev: header.Event,
 			}, sendmsg)
 			if err != nil {
 				// Handle the error, such as logging or returning a response
