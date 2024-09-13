@@ -2,6 +2,7 @@ package main
 
 import (
 	"braid-demo/actors"
+	"braid-demo/constant"
 	"braid-demo/events"
 	"context"
 	"fmt"
@@ -28,7 +29,7 @@ func main() {
 		),
 	)
 
-	helloActor, err := nod.System().Register(context.TODO(), actors.HttpHelloActor,
+	helloActor, err := nod.System().Register(context.TODO(), constant.ActorHttpAcceptor,
 		core.CreateActorWithID("1"),
 		core.CreateActorWithOption("port", "8008"),
 	)
@@ -41,7 +42,7 @@ func main() {
 		panic(fmt.Errorf("node init err %v", err.Error()))
 	}
 
-	helloActor.RegisterEvent("hello", events.HttpHello())
+	helloActor.RegisterEvent(events.EvHttpHello, events.HttpHello())
 
 	nod.Update()
 

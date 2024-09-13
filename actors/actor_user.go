@@ -1,6 +1,7 @@
 package actors
 
 import (
+	"braid-demo/constant"
 	"braid-demo/events"
 	"braid-demo/models/user"
 	"context"
@@ -17,7 +18,7 @@ type mockUserActor struct {
 
 func NewUserActor(p *core.CreateActorParm) core.IActor {
 	return &mockUserActor{
-		Runtime: &actor.Runtime{Id: p.ID, Ty: UserActor, Sys: p.Sys},
+		Runtime: &actor.Runtime{Id: p.ID, Ty: constant.ActorUser, Sys: p.Sys},
 		entity:  user.NewEntityWapper(p.ID),
 	}
 }
@@ -29,18 +30,16 @@ func (a *mockUserActor) Init() {
 		panic(fmt.Errorf("load user actor err %v", err.Error()))
 	}
 
-	a.RegisterEvent(events.UserUseItem, events.MakeUserUseItem())
+	a.RegisterEvent(events.EvUserUseItem, events.MakeUserUseItem())
 
-	a.RegisterEvent(events.ChatAddChannel, events.MakeChatAddChannel(a.entity))
-	a.RegisterEvent(events.ChatRmvChannel, events.MakeChatRemoveChannel(a.entity))
+	a.RegisterEvent(events.EvUserChatAddChannel, events.MakeChatAddChannel(a.entity))
+	a.RegisterEvent(events.EvUserChatRemoveChannel, events.MakeChatRemoveChannel(a.entity))
 
-	for _, v := range a.entity.User.ChatChannels {
-		a.Sys.Register(context.TODO(), v,
-			core.CreateActorWithID("chat."+v+"."+a.Id),
-			core.CreateActorWithOption("channel", v),
-			core.CreateActorWithOption("actorID", a.Id),
-		)
-	}
+	a.Sys.Register(context.TODO(), constant.ChatPrivateChannel,
+		core.CreateActorWithID("chat."+constant.ChatPrivateChannel+"."+a.Id),
+		core.CreateActorWithOption("channel", constant.ChatPrivateChannel),
+		core.CreateActorWithOption("actorID", a.Id),
+	)
 
 	// one minute try sync to cache
 	a.RegisterTimer(0, 1000*60, func() error {

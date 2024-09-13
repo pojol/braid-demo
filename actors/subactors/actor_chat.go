@@ -1,6 +1,7 @@
 package subactors
 
 import (
+	"braid-demo/events"
 	"braid-demo/models/gameproto"
 
 	"github.com/pojol/braid/core"
@@ -17,12 +18,6 @@ type chatChannelActor struct {
 	msgHistory []gameproto.ChatMessage
 }
 
-const (
-	ChatPrivateChannel = "chatPrivate"
-	ChatGlobalChannel  = "chatGlobal"
-	ChatGuildChannel   = "chatGuild"
-)
-
 func NewChatActor(p *core.CreateActorParm) core.IActor {
 	return &chatChannelActor{
 		Runtime:     &actor.Runtime{Id: p.ID, Ty: p.Options["channel"].(string) + "Actor", Sys: p.Sys},
@@ -34,6 +29,6 @@ func NewChatActor(p *core.CreateActorParm) core.IActor {
 func (a *chatChannelActor) Init() {
 	a.Runtime.Init()
 
-	a.RegisterEvent("chatRecvedMessage", &actor.DefaultChain{})
-	a.RegisterEvent("getMessagePage", &actor.DefaultChain{})
+	a.RegisterEvent(events.EvChatChannelReceived, &actor.DefaultChain{})
+	a.RegisterEvent(events.EvChatChannelMessages, &actor.DefaultChain{})
 }

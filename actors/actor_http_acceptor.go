@@ -1,6 +1,7 @@
 package actors
 
 import (
+	"braid-demo/constant"
 	"context"
 	"fmt"
 	"io"
@@ -16,21 +17,21 @@ import (
 	"github.com/pojol/braid/router"
 )
 
-type httpHelloActor struct {
+type httpAcceptorActor struct {
 	*actor.Runtime
 	echoptr *echo.Echo
 	Port    string
 }
 
-func NewHttpHelloActor(p *core.CreateActorParm) core.IActor {
-	return &httpHelloActor{
-		Runtime: &actor.Runtime{Id: p.ID, Ty: HttpHelloActor, Sys: p.Sys},
+func NewHttpAcceptorActor(p *core.CreateActorParm) core.IActor {
+	return &httpAcceptorActor{
+		Runtime: &actor.Runtime{Id: p.ID, Ty: constant.ActorHttpAcceptor, Sys: p.Sys},
 		echoptr: echo.New(),
 		Port:    p.Options["port"].(string),
 	}
 }
 
-func (a *httpHelloActor) Init() {
+func (a *httpAcceptorActor) Init() {
 	a.Runtime.Init()
 
 	recovercfg := middleware.DefaultRecoverConfig
@@ -63,7 +64,7 @@ func (a *httpHelloActor) Init() {
 	})
 }
 
-func (a *httpHelloActor) Update() {
+func (a *httpAcceptorActor) Update() {
 	go a.Runtime.Update()
 
 	err := a.echoptr.Start(":" + a.Port)
@@ -72,7 +73,7 @@ func (a *httpHelloActor) Update() {
 	}
 }
 
-func (a *httpHelloActor) Exit() {
+func (a *httpAcceptorActor) Exit() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	if err := a.echoptr.Shutdown(ctx); err != nil {

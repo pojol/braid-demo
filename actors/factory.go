@@ -2,6 +2,7 @@ package actors
 
 import (
 	"braid-demo/actors/subactors"
+	"braid-demo/constant"
 
 	"github.com/pojol/braid/core"
 	"github.com/pojol/braid/core/cluster/node"
@@ -21,8 +22,8 @@ func newActorFactory() {
 	}
 }
 
-// Register registers an actor type and its constructor function
-func register(actorType string, f core.CreateFunc) {
+// Bind associates an actor type with its constructor function
+func bind(actorType string, f core.CreateFunc) {
 	factory.constructors[actorType] = f
 }
 
@@ -38,24 +39,13 @@ func GetConstructors() []node.ActorConstructor {
 	return constructors
 }
 
-const (
-	HttpHelloActor = "httpHelloActor"
-	LoginActor     = "loginActor"
-	UserActor      = "userActor"
-
-	ChatPrivateChannelActor = "chatPrivateActor"
-	ChatGlobalChannelActor  = "chatGlobalActor"
-	ChatGuildChannelActor   = "chatGuildActor"
-)
-
 func init() {
 	newActorFactory()
 
-	register(HttpHelloActor, NewHttpHelloActor)
-	register(LoginActor, NewLoginActor)
-	register(UserActor, NewUserActor)
+	bind(constant.ActorHttpAcceptor, NewHttpAcceptorActor)
+	bind(constant.ActorLogin, NewLoginActor)
+	bind(constant.ActorUser, NewUserActor)
 
-	register(ChatPrivateChannelActor, subactors.NewChatActor)
-	register(ChatGlobalChannelActor, subactors.NewChatActor)
-	register(ChatGuildChannelActor, subactors.NewChatActor)
+	bind(constant.ActorChatGlobalChannel, subactors.NewChatActor)
+	bind(constant.ActorChatGuildChannel, subactors.NewChatActor)
 }

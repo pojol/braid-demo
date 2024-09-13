@@ -168,6 +168,7 @@ func (b *EntityBagModule) ConsumeItem(id, num int32, reason, detail string) []*c
 	ritem, err := b.consume(true, &commproto.Item{DictID: id, Num: num}, num)
 	if err != nil {
 		fmt.Errorf("consume item %v num %v reason %v error: %w", id, num, reason, err)
+		return refresh
 	}
 
 	refresh = append(refresh, &commproto.Item{
