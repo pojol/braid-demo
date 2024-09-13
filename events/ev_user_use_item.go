@@ -1,8 +1,8 @@
-package apis
+package events
 
 import (
-	"braid-demo/demoproto"
 	"braid-demo/middleware"
+	"braid-demo/models/gameproto"
 	"context"
 	"fmt"
 
@@ -11,14 +11,14 @@ import (
 	"github.com/pojol/braid/router"
 )
 
-func UseItem() core.IChain {
-	unpackCfg := &middleware.MessageUnpackCfg[*demoproto.CrudUseItemReq]{}
+func MakeUserUseItem() core.IChain {
+	unpackCfg := &middleware.MessageUnpackCfg[*gameproto.CrudUseItemReq]{}
 
 	return &actor.DefaultChain{
 		Before: []actor.MiddlewareHandler{middleware.MessageUnpack(unpackCfg)},
 		Handler: func(ctx context.Context, mw *router.MsgWrapper) error {
 
-			req := unpackCfg.Msg.(*demoproto.CrudUseItemReq)
+			req := unpackCfg.Msg.(*gameproto.CrudUseItemReq)
 			fmt.Println("req use item id:", req.ItemID)
 
 			return nil

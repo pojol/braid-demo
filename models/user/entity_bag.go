@@ -1,15 +1,18 @@
 package user
 
-import fmt "fmt"
+import (
+	commproto "braid-demo/models/commproto"
+	fmt "fmt"
+)
 
-func (b *EntityBagModule) produce(item *Item) {
+func (b *EntityBagModule) produce(item *commproto.Item) {
 	_, ok := b.Bag[item.DictID]
 
 	// check if it is a auto-recovery item
 
 	if !ok {
-		b.Bag[item.DictID] = &ItemList{
-			Items: []*Item{item},
+		b.Bag[item.DictID] = &commproto.ItemList{
+			Items: []*commproto.Item{item},
 		}
 	} else {
 		// check if it can be stacked
@@ -18,9 +21,9 @@ func (b *EntityBagModule) produce(item *Item) {
 	}
 }
 
-func (b *EntityBagModule) consume(dict bool, item *Item, num int32) (Item, error) {
+func (b *EntityBagModule) consume(dict bool, item *commproto.Item, num int32) (commproto.Item, error) {
 	items, ok := b.Bag[item.DictID]
-	refreshItem := Item{}
+	refreshItem := commproto.Item{}
 
 	if !ok {
 		return refreshItem, fmt.Errorf("not found")
@@ -69,7 +72,7 @@ func (b *EntityBagModule) consume(dict bool, item *Item, num int32) (Item, error
 	return refreshItem, nil
 }
 
-func (b *EntityBagModule) enough(dict bool, item *Item) bool {
+func (b *EntityBagModule) enough(dict bool, item *commproto.Item) bool {
 	items, ok := b.Bag[item.DictID]
 	if !ok {
 		return false
@@ -111,16 +114,16 @@ func (b *EntityBagModule) _checkTimeoutItem() {
 
 // EnoughItemWithInsID - check if the item is enough with instance id (unique id), note: need to pass dictionary id
 func (b *EntityBagModule) EnoughItemWithInsID(id string, dictid, num int32) bool {
-	return b.enough(false, &Item{ID: id, DictID: dictid, Num: num})
+	return b.enough(false, &commproto.Item{ID: id, DictID: dictid, Num: num})
 }
 
 // EnoughItem - check if the item is enough with dictionary id
 func (b *EntityBagModule) EnoughItem(id, num int32) bool {
-	return b.enough(true, &Item{DictID: id, Num: num})
+	return b.enough(true, &commproto.Item{DictID: id, Num: num})
 }
 
 // EnoughItems - check if the items are enough with dictionary id
-func (b *EntityBagModule) EnoughItems(items []*Item) bool {
+func (b *EntityBagModule) EnoughItems(items []*commproto.Item) bool {
 	for _, v := range items {
 		if !b.enough(true, v) {
 			return false
@@ -130,7 +133,7 @@ func (b *EntityBagModule) EnoughItems(items []*Item) bool {
 	return true
 }
 
-func (b *EntityBagModule) ProduceItem(item *Item, num uint32, reason, detail string) {
+func (b *EntityBagModule) ProduceItem(item *commproto.Item, num uint32, reason, detail string) {
 
 }
 
@@ -139,7 +142,7 @@ func (b *EntityBagModule) ProduceItem(item *Item, num uint32, reason, detail str
 //	items: items to produce
 //	reason: produce reason
 //	detail: produce detail
-func (b *EntityBagModule) ProduceItems(items []*Item, reason, detail string) {
+func (b *EntityBagModule) ProduceItems(items []*commproto.Item, reason, detail string) {
 
 }
 
@@ -159,15 +162,15 @@ func (b *EntityBagModule) GetItemNum(id int32) int64 {
 }
 
 // ConsumeItem - consume item (must check enough before consume)
-func (b *EntityBagModule) ConsumeItem(id, num int32, reason, detail string) []*Item {
-	refresh := []*Item{}
+func (b *EntityBagModule) ConsumeItem(id, num int32, reason, detail string) []*commproto.Item {
+	refresh := []*commproto.Item{}
 
-	ritem, err := b.consume(true, &Item{DictID: id, Num: num}, num)
+	ritem, err := b.consume(true, &commproto.Item{DictID: id, Num: num}, num)
 	if err != nil {
 		fmt.Errorf("consume item %v num %v reason %v error: %w", id, num, reason, err)
 	}
 
-	refresh = append(refresh, &Item{
+	refresh = append(refresh, &commproto.Item{
 		ID:     ritem.ID,
 		DictID: ritem.DictID,
 		Num:    ritem.Num,
@@ -179,9 +182,9 @@ func (b *EntityBagModule) ConsumeItem(id, num int32, reason, detail string) []*I
 }
 
 // ConsumeItems - consume items (must check enough before consume)
-func (b *EntityBagModule) ConsumeItems(items []*Item, reason, detail string) []*Item {
+func (b *EntityBagModule) ConsumeItems(items []*commproto.Item, reason, detail string) []*commproto.Item {
 
-	refresh := []*Item{}
+	refresh := []*commproto.Item{}
 
 	for _, v := range items {
 		ritem, err := b.consume(true, v, v.Num)
@@ -189,7 +192,7 @@ func (b *EntityBagModule) ConsumeItems(items []*Item, reason, detail string) []*
 			fmt.Printf("consume item %v num %v reason %v error: %v", v.DictID, v.Num, reason, err)
 		}
 
-		refresh = append(refresh, &Item{
+		refresh = append(refresh, &commproto.Item{
 			ID:     ritem.ID,
 			DictID: ritem.DictID,
 			Num:    ritem.Num,

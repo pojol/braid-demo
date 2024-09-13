@@ -1,8 +1,8 @@
-package apis
+package events
 
 import (
-	"braid-demo/demoproto"
 	"braid-demo/middleware"
+	"braid-demo/models/gameproto"
 	"context"
 	"fmt"
 	"math/rand"
@@ -14,13 +14,14 @@ import (
 )
 
 func HttpHello() core.IChain {
-	unpackCfg := &middleware.MessageUnpackCfg[*demoproto.HelloReq]{}
+
+	unpackCfg := &middleware.MessageUnpackCfg[*gameproto.HelloReq]{}
 
 	return &actor.DefaultChain{
 		Before: []actor.MiddlewareHandler{middleware.MessageUnpack(unpackCfg)},
 		Handler: func(ctx context.Context, mw *router.MsgWrapper) error {
 
-			req := unpackCfg.Msg.(*demoproto.HelloReq)
+			req := unpackCfg.Msg.(*gameproto.HelloReq)
 			fmt.Println("req name:", req.Name)
 
 			var dict = []string{"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k"}
@@ -29,7 +30,7 @@ func HttpHello() core.IChain {
 			for i := 0; i < 3; i++ {
 				msg += dict[rand.Intn(len(dict)-1)]
 			}
-			res := &demoproto.HelloResp{
+			res := &gameproto.HelloResp{
 				Message: msg,
 			}
 			resbody, _ := proto.Marshal(res)

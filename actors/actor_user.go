@@ -1,7 +1,7 @@
 package actors
 
 import (
-	"braid-demo/demos/2_crud/apis"
+	"braid-demo/events"
 	"braid-demo/models/user"
 	"context"
 	"fmt"
@@ -29,7 +29,10 @@ func (a *mockUserActor) Init() {
 		panic(fmt.Errorf("load user actor err %v", err.Error()))
 	}
 
-	a.RegisterEvent("useItem", apis.UseItem())
+	a.RegisterEvent(events.UserUseItem, events.MakeUserUseItem())
+
+	a.RegisterEvent(events.ChatAddChannel, events.MakeChatAddChannel(a.entity))
+	a.RegisterEvent(events.ChatRmvChannel, events.MakeChatRemoveChannel(a.entity))
 
 	for _, v := range a.entity.User.ChatChannels {
 		a.Sys.Register(context.TODO(), v,

@@ -11,7 +11,7 @@ import (
 	"github.com/pojol/gobot/driver/utils"
 	lua "github.com/yuin/gopher-lua"
 
-	_ "braid-demo/demoproto"
+	_ "braid-demo/models/gameproto"
 )
 
 func main() {

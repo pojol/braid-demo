@@ -1,0 +1,13 @@
+syntax = "proto3";
+package commproto;
+
+
+message Item {
+  string ID = 1;  // item instance id （unique id）
+  int32 DictID = 2;  // dictionary id （config id）
+  int32 Num = 3; 
+}
+
+message ItemList {
+  repeated Item Items = 1;
+}

@@ -2,7 +2,7 @@ package main
 
 import (
 	"braid-demo/actors"
-	"braid-demo/demos/1_http/apis"
+	"braid-demo/events"
 	"context"
 	"fmt"
 
@@ -41,7 +41,7 @@ func main() {
 		panic(fmt.Errorf("node init err %v", err.Error()))
 	}
 
-	helloActor.RegisterEvent("hello", apis.HttpHello())
+	helloActor.RegisterEvent("hello", events.HttpHello())
 
 	nod.Update()
 

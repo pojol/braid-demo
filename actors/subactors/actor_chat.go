@@ -1,7 +1,7 @@
 package subactors
 
 import (
-	"braid-demo/demoproto"
+	"braid-demo/models/gameproto"
 
 	"github.com/pojol/braid/core"
 	"github.com/pojol/braid/core/actor"
@@ -14,7 +14,7 @@ type chatChannelActor struct {
 	userActorID string
 
 	// Store several recent messages locally for each channel
-	msgHistory []demoproto.ChatMessage
+	msgHistory []gameproto.ChatMessage
 }
 
 const (

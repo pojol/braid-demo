@@ -2,20 +2,12 @@ syntax = "proto3";
 
 package user;
 
-message Item {
-  string ID = 1;  // item instance id （unique id）
-  int32 DictID = 2;  // dictionary id （config id）
-  int32 Num = 3; 
-}
-
-message ItemList {
-  repeated Item Items = 1;
-}
+import "commproto/comm.proto";
 
 // -----------------  entity module -----------------\
 message EntityBagModule {
   string ID = 1;  // actor id
-  map<int32, ItemList> Bag = 2;
+  map<int32, commproto.ItemList> Bag = 2;
 }
 
 message EntityTimeInfoModule {
