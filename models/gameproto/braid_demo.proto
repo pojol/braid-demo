@@ -16,6 +16,15 @@ message HelloResp {
     string Message = 1;
 }
 
+message LoginReq {
+    string Uid = 1;
+}
+
+message LoginResp {
+    string Uid = 1;
+    string Token = 2;
+}
+
 message CrudUseItemReq {
     commproto.ItemList Items = 1;
 }

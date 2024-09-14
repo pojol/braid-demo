@@ -20,6 +20,7 @@ func MakeChatRecved(sys core.ISystem, state *chat.State) core.IChain {
 	unpackCfg := &middleware.MessageUnpackCfg[*gameproto.ChatSendReq]{}
 
 	return &actor.DefaultChain{
+		Before: []actor.MiddlewareHandler{middleware.MessageUnpack(unpackCfg)},
 		Handler: func(ctx context.Context, mw *router.MsgWrapper) error {
 
 			req := unpackCfg.Msg.(*gameproto.ChatSendReq)

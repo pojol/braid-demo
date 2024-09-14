@@ -30,7 +30,7 @@ func (a *mockUserActor) Init() {
 		panic(fmt.Errorf("load user actor err %v", err.Error()))
 	}
 
-	a.RegisterEvent(events.EvUserUseItem, events.MakeUserUseItem())
+	a.RegisterEvent(events.EvUserUseItem, events.MakeUserUseItem(a.entity))
 
 	a.RegisterEvent(events.EvUserChatAddChannel, events.MakeChatAddChannel(a.entity))
 	a.RegisterEvent(events.EvUserChatRemoveChannel, events.MakeChatRemoveChannel(a.entity))

@@ -17,6 +17,7 @@ func MakeChatRemoveChannel(e *user.EntityWrapper) core.IChain {
 	unpackCfg := &middleware.MessageUnpackCfg[*gameproto.ChatRmvChannelReq]{}
 
 	return &actor.DefaultChain{
+		Before: []actor.MiddlewareHandler{middleware.MessageUnpack(unpackCfg)},
 		Handler: func(ctx context.Context, mw *router.MsgWrapper) error {
 
 			req := unpackCfg.Msg.(*gameproto.ChatRmvChannelReq)

@@ -42,7 +42,7 @@ func main() {
 		panic(fmt.Errorf("node init err %v", err.Error()))
 	}
 
-	helloActor.RegisterEvent(events.EvLogin, events.MakeWSLogin())
+	helloActor.RegisterEvent(events.EvLogin, events.MakeWSLogin(nod.System()))
 
 	nod.Update()
 

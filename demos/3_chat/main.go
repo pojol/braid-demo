@@ -52,7 +52,7 @@ func main() {
 		panic(fmt.Errorf("node init err %v", err.Error()))
 	}
 
-	wsAcceptorActor.RegisterEvent(events.EvLogin, events.MakeWSLogin())
+	wsAcceptorActor.RegisterEvent(events.EvLogin, events.MakeWSLogin(nod.System()))
 	globalChatActor.RegisterEvent(events.EvChatSendMessage, events.MakeChatSendCmd(nod.System()))
 
 	nod.Update()
