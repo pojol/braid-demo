@@ -10,6 +10,8 @@ const (
 	ActorHttpAcceptor     = "httpAcceptorActor"
 	ActorWebsoketAcceptor = "websocketAcceptorActor"
 	ActorLogin            = "loginActor"
-	ActorChat             = "chatActor"
+	ActorGlobalChat       = "globalChatActor"
+	ActorGuildChat        = "guildChatActor"
+	ActorPrivateChat      = "privateChatActor"
 	ActorUser             = "userActor"
 )

@@ -5,10 +5,10 @@ import (
 	"braid-demo/middleware"
 	"braid-demo/models/gameproto"
 	"context"
-	"fmt"
 
 	"github.com/pojol/braid/core"
 	"github.com/pojol/braid/core/actor"
+	"github.com/pojol/braid/def"
 	"github.com/pojol/braid/router"
 )
 
@@ -20,19 +20,23 @@ func MakeChatSendCmd(sys core.ISystem) core.IChain {
 		Handler: func(ctx context.Context, mw *router.MsgWrapper) error {
 
 			req := unpackCfg.Msg.(*gameproto.ChatSendReq)
-			fmt.Println(req.Msg)
 
 			// check if the channel is valid
 			// ...
 
-			if req.Msg.Channel == constant.ChatPrivateChannel {
-				chatActorID := "chat." + constant.ChatPrivateChannel + "." + req.Msg.ReceiverID
-				sys.Call(ctx, router.Target{ID: chatActorID, Ty: constant.ChatPrivateChannel, Ev: EvChatSendMessage},
-					router.NewMsg().Build(),
-				)
-			} else {
+			targetActorID := ""
+			targetActorTy := ""
 
+			switch req.Msg.Channel {
+			case constant.ActorPrivateChat:
+				targetActorID = "chat." + constant.ChatPrivateChannel + "." + req.Msg.ReceiverID
+				targetActorTy = req.Msg.Channel
+			case constant.ActorGlobalChat, constant.ActorGuildChat:
+				targetActorID = def.SymbolLocalFirst
+				targetActorTy = req.Msg.Channel
 			}
+
+			sys.Call(ctx, router.Target{ID: targetActorID, Ty: targetActorTy, Ev: EvChatChannelReceived}, mw)
 
 			return nil
 		},

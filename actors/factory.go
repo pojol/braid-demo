@@ -45,7 +45,11 @@ func init() {
 	bind(constant.ActorHttpAcceptor, NewHttpAcceptorActor)
 	bind(constant.ActorWebsoketAcceptor, NewWSAcceptorActor)
 	bind(constant.ActorLogin, NewLoginActor)
-	bind(constant.ActorChat, subactors.NewChatActor)
+
+	bind(constant.ActorGlobalChat, subactors.NewChatActor)
+	bind(constant.ActorGuildChat, subactors.NewChatActor)
+	bind(constant.ActorPrivateChat, subactors.NewChatActor)
+
 	bind(constant.ActorUser, NewUserActor)
 
 }

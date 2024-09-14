@@ -40,8 +40,8 @@ func main() {
 		panic(err)
 	}
 
-	chatActor, err := nod.System().Register(context.TODO(), constant.ActorChat,
-		core.CreateActorWithID(service+"-"+nodeid+"-"+constant.ActorChat),
+	globalChatActor, err := nod.System().Register(context.TODO(), constant.ActorGlobalChat,
+		core.CreateActorWithID(service+"-"+nodeid+"-"+constant.ActorGlobalChat),
 	)
 	if err != nil {
 		panic(err)
@@ -53,7 +53,7 @@ func main() {
 	}
 
 	wsAcceptorActor.RegisterEvent(events.EvLogin, events.MakeWSLogin())
-	chatActor.RegisterEvent(events.EvChatSendMessage, events.MakeChatSendCmd(nod.System()))
+	globalChatActor.RegisterEvent(events.EvChatSendMessage, events.MakeChatSendCmd(nod.System()))
 
 	nod.Update()
 

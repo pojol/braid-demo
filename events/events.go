@@ -1,8 +1,9 @@
 package events
 
 const (
-	EvHttpHello = "hello"
-	EvLogin     = "login"
+	EvHttpHello      = "hello"
+	EvLogin          = "login"
+	EvWebsoketNotify = "websocketNotify"
 
 	// User related events
 	EvUserUseItem           = "userUseItem"
@@ -13,4 +14,6 @@ const (
 	EvChatSendMessage     = "chatSendMessage"
 	EvChatChannelReceived = "chatChannelReceived"
 	EvChatChannelMessages = "chatChannelMessages"
+	EvChatChannelAdd      = "chatChannelAdd"
+	EvChatChannelRmv      = "chatChannelRmv"
 )
