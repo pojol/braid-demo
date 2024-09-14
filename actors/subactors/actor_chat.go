@@ -27,6 +27,6 @@ func (a *chatChannelActor) Init() {
 
 	a.RegisterEvent(events.EvChatChannelReceived, events.MakeChatRecved(a.Sys, a.state))
 	a.RegisterEvent(events.EvChatChannelMessages, events.MakeChatMessages())
-	a.RegisterEvent(events.EvChatChannelAdd, &actor.DefaultChain{})
-	a.RegisterEvent(events.EvChatChannelRmv, &actor.DefaultChain{})
+	a.RegisterEvent(events.EvChatChannelAddUser, &actor.DefaultChain{})
+	a.RegisterEvent(events.EvChatChannelRmvUser, &actor.DefaultChain{})
 }

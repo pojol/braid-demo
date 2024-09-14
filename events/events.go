@@ -14,6 +14,6 @@ const (
 	EvChatSendMessage     = "chatSendMessage"
 	EvChatChannelReceived = "chatChannelReceived"
 	EvChatChannelMessages = "chatChannelMessages"
-	EvChatChannelAdd      = "chatChannelAdd"
-	EvChatChannelRmv      = "chatChannelRmv"
+	EvChatChannelAddUser  = "chatChannelAddUser"
+	EvChatChannelRmvUser  = "chatChannelRmvUser"
 )

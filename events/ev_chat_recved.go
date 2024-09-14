@@ -36,12 +36,12 @@ func MakeChatRecved(sys core.ISystem, state *chat.State) core.IChain {
 			mw.Res.Body, _ = proto.Marshal(&notify)
 
 			if req.Msg.Channel == constant.ChatPrivateChannel {
-				sys.Call(ctx,
+				sys.Send(ctx,
 					router.Target{ID: def.SymbolLocalFirst, Ty: constant.ActorWebsoketAcceptor, Ev: EvWebsoketNotify},
 					mw,
 				)
 			} else {
-				sys.Call(ctx,
+				sys.Send(ctx,
 					router.Target{
 						ID:    def.SymbolGroup,
 						Ty:    constant.ActorWebsoketAcceptor,
