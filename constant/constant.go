@@ -15,3 +15,8 @@ const (
 	ActorPrivateChat      = "privateChatActor"
 	ActorUser             = "userActor"
 )
+
+const (
+	MongoDatabase   = "braid-demo"
+	MongoCollection = "role"
+)

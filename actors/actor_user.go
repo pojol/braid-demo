@@ -47,4 +47,6 @@ func (a *mockUserActor) Init() {
 
 		return nil
 	}, nil)
+
+	fmt.Printf("user actor %v init succ\n", a.entity.ID)
 }

@@ -1,0 +1,130 @@
+<behavior>
+  <id>14bcccc7-f3e0-41db-b4e1-df8ac960f178</id>
+  <pos>
+    <x>390</x>
+    <y>100</y>
+  </pos>
+  <ty>RootNode</ty>
+  <children>
+    <id>43279ff6-3da6-42ee-8f67-b5e8ab8830ed</id>
+    <ty>http</ty>
+    <code>
+CONN = require(&#34;websocket&#34;)
+
+local ret = CONN.dail(&#34;ws&#34;, &#34;127.0.0.1&#34;, &#34;8008&#34;)
+print(&#34;conn dail &#34; .. ret)
+
+QUEUE = {}
+
+STATE = 1
+
+function execute()
+    
+end</code>
+    <loop>1</loop>
+    <wait>1</wait>
+    <pos>
+      <x>395</x>
+      <y>158</y>
+    </pos>
+    <alias>ws_conn</alias>
+    <children>
+      <id>2bc081d9-6c4f-4590-806f-cb3f5f42ca1f</id>
+      <ty>ParallelNode</ty>
+      <loop>1</loop>
+      <wait>1</wait>
+      <pos>
+        <x>400</x>
+        <y>220</y>
+      </pos>
+      <children>
+        <id>bc7bad0d-744a-4cc8-b040-cda7f591b083</id>
+        <ty>LoopNode</ty>
+        <loop>0</loop>
+        <wait>1</wait>
+        <pos>
+          <x>291</x>
+          <y>300</y>
+        </pos>
+        <children>
+          <id>bfa022c9-3b25-4a7a-9320-2eaefc59a33a</id>
+          <ty>WaitNode</ty>
+          <loop>1</loop>
+          <wait>500</wait>
+          <pos>
+            <x>311</x>
+            <y>368</y>
+          </pos>
+          <children>
+            <id>6b6d4fbf-d583-449d-a2c1-09f2df613446</id>
+            <ty>http</ty>
+            <code>function execute()
+
+  msgid, msgbody = WSUnpackMsg(CONN.read())
+
+  if msgid ~= 0 then
+    print(&#34;read==&gt; &#34;, msgid, msgbody)
+    table.insert(QUEUE, {id = msgid, body = msgbody})
+  end
+end
+</code>
+            <loop>1</loop>
+            <wait>1</wait>
+            <pos>
+              <x>301</x>
+              <y>418</y>
+            </pos>
+            <alias>recv</alias>
+          </children>
+        </children>
+      </children>
+      <children>
+        <id>9cef0512-7edf-46e9-8406-1e2b6c41cd60</id>
+        <ty>SequenceNode</ty>
+        <loop>1</loop>
+        <wait>1</wait>
+        <pos>
+          <x>480</x>
+          <y>307</y>
+        </pos>
+        <children>
+          <id>9aa87691-7576-412e-90b5-b7a97bebe668</id>
+          <ty>http_request</ty>
+          <code>local proto = require(&#34;proto&#34;)
+local utils = require(&#34;utils&#34;)
+--
+
+function execute()
+
+    body, errmsg = proto.marshal(&#34;gameproto.LoginReq&#34;, json.encode({
+        Uid = utils.uuid(),
+    }))
+    if errmsg ~= nil then
+        bot.Meta.Err = &#34;proto.marshal&#34; .. errmsg
+        return
+    end
+
+    head, errmsg = proto.marshal(&#34;gameproto.MsgHeader&#34;, json.encode{
+      Event = &#34;login&#34;,
+      Token = &#34;&#34;,
+    })
+  
+    local ret = CONN.write(WSPackMsg(head, body))
+    print(&#34;login req &#34; .. ret)
+
+    return state.Succ, body -- 将http response传递给 editor 中的 response 栏
+end
+
+</code>
+          <loop>1</loop>
+          <wait>1</wait>
+          <pos>
+            <x>445</x>
+            <y>388</y>
+          </pos>
+          <alias>login</alias>
+        </children>
+      </children>
+    </children>
+  </children>
+</behavior>

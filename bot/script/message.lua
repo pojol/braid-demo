@@ -22,12 +22,12 @@ function WSUnpackMsg(buf, errmsg)
     
 end
 
-function WSPackMsg(msgid, msgbody)
+function WSPackMsg(msgHead, msgBody)
 
-    local msg = message.new("", ByteOrder, 6+#msgbody)
-    msg:writei2(msgid)
-    msg:writeBytes(msgbody)
-
+    local msg = message.new("", ByteOrder, 2+#msgHead+#msgBody)
+    msg:writei2(#msgHead)
+    msg:writeBytes(msgHead)
+    msg:writeBytes(msgBody)
     return msg:pack()
 
 end

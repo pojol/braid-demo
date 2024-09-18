@@ -36,7 +36,7 @@ func MakeWSLogin(sys core.ISystem) core.IChain {
 			}
 			create := false
 
-			err := mgo.Collection("braid-test", "role").FindOne(ctx, bson.M{"openid": req.Uid}).Decode(e)
+			err := mgo.Collection(constant.MongoDatabase, constant.MongoCollection).FindOne(ctx, bson.M{"openid": req.Uid}).Decode(e)
 			if err != nil {
 				if err == mongo.ErrNoDocuments {
 					create = true
@@ -50,7 +50,7 @@ func MakeWSLogin(sys core.ISystem) core.IChain {
 				e.ID = uuid.NewString()
 				e.User.Token, _ = token.Create(e.ID)
 
-				_, err = mgo.Collection("braid-test", "role").InsertOne(ctx, e)
+				_, err = mgo.Collection(constant.MongoDatabase, constant.MongoCollection).InsertOne(ctx, e)
 				if err != nil {
 					return errcode.ErrMongoCmd(err)
 				}

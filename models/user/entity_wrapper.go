@@ -1,7 +1,9 @@
 package user
 
 import (
+	"braid-demo/constant"
 	"context"
+	"fmt"
 	"reflect"
 
 	"github.com/pojol/braid/core"
@@ -55,14 +57,14 @@ func NewEntityWapper(id string) *EntityWrapper {
 	e := &EntityWrapper{
 		ID: id,
 	}
-	e.cs = actor.BuildEntityLoader("braid-test", "entity_test", e)
+	e.cs = actor.BuildEntityLoader(constant.MongoDatabase, constant.MongoCollection, e)
 	return e
 }
 
 func (e *EntityWrapper) Load(ctx context.Context) error {
 	err := e.cs.Load(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("load entity %v err %v", e.ID, err.Error())
 	}
 
 	e.setModulesAndIDs()

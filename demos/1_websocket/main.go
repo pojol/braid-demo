@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/pojol/braid/3rd/mgo"
 	"github.com/pojol/braid/3rd/redis"
 	"github.com/pojol/braid/core"
 	"github.com/pojol/braid/core/cluster/node"
@@ -17,6 +18,17 @@ func main() {
 	slog, _ := log.NewServerLogger("test")
 	log.SetSLog(slog)
 	defer log.Sync()
+
+	mockservice := "service"
+	mocknodid := "ws1-1"
+
+	err := mgo.Build(mgo.AppendConn(mgo.ConnInfo{
+		Name: "braid-demo",
+		Addr: "mongodb://127.0.0.1:27017",
+	}))
+	if err != nil {
+		panic(fmt.Errorf("mongo build err %v", err.Error()))
+	}
 
 	// mock redis
 	redis.BuildClientWithOption(redis.WithAddr("redis://127.0.0.1:6379/0"))
@@ -29,9 +41,16 @@ func main() {
 		),
 	)
 
-	helloActor, err := nod.System().Register(context.TODO(), constant.ActorWebsoketAcceptor,
+	_, err = nod.System().Register(context.TODO(), constant.ActorWebsoketAcceptor,
 		core.CreateActorWithID("1"),
 		core.CreateActorWithOption("port", "8008"),
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	loginActor, err := nod.System().Register(context.TODO(), constant.ActorLogin,
+		core.CreateActorWithID(mockservice+"_"+mocknodid+"login-1"),
 	)
 	if err != nil {
 		panic(err)
@@ -42,7 +61,7 @@ func main() {
 		panic(fmt.Errorf("node init err %v", err.Error()))
 	}
 
-	helloActor.RegisterEvent(events.EvLogin, events.MakeWSLogin(nod.System()))
+	loginActor.RegisterEvent(events.EvLogin, events.MakeWSLogin(nod.System()))
 
 	nod.Update()
 

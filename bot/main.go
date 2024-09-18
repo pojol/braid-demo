@@ -11,6 +11,7 @@ import (
 	"github.com/pojol/gobot/driver/utils"
 	lua "github.com/yuin/gopher-lua"
 
+	_ "braid-demo/models/commproto"
 	_ "braid-demo/models/gameproto"
 )
 
