@@ -114,3 +114,4 @@ require (
 )
 
 replace github.com/pojol/braid => /Users/pojol/github/braid
+replace github.com/pojol/gobot => /Users/pojol/github/gobot

@@ -5,10 +5,12 @@ import (
 	"braid-demo/middleware"
 	"braid-demo/models/gameproto"
 	"context"
+	"fmt"
 
 	"github.com/pojol/braid/core"
 	"github.com/pojol/braid/core/actor"
 	"github.com/pojol/braid/def"
+	"github.com/pojol/braid/lib/log"
 	"github.com/pojol/braid/router"
 )
 
@@ -29,15 +31,24 @@ func MakeChatSendCmd(sys core.ISystem) core.IChain {
 			targetActorTy := ""
 
 			switch req.Msg.Channel {
-			case constant.ActorPrivateChat:
-				targetActorID = "chat." + constant.ChatPrivateChannel + "." + req.Msg.ReceiverID
+			case constant.ChatPrivateChannel:
+				targetActorID = "chat." + req.Msg.Channel + "." + req.Msg.ReceiverID
 				targetActorTy = req.Msg.Channel
-			case constant.ActorGlobalChat, constant.ActorGuildChat:
+			case constant.ChatGlobalChannel, constant.ChatGuildChannel:
 				targetActorID = def.SymbolLocalFirst
 				targetActorTy = req.Msg.Channel
+			default:
+				log.Info("actor %v sent chat message is unknown channel %v", req.Msg.SenderID, req.Msg.Channel)
+				return nil
 			}
 
-			sys.Call(ctx, router.Target{ID: targetActorID, Ty: targetActorTy, Ev: EvChatChannelReceived}, mw)
+			err := sys.Call(ctx, router.Target{ID: targetActorID, Ty: targetActorTy, Ev: EvChatChannelReceived}, mw)
+			// If the error type is that the target actor cannot be found in the address book
+			// If the target actor is a valid ID
+			// Send the message to the target actor's message queue, waiting for consumption after login
+			if err == fmt.Errorf("unknown actor") /* && actor is vaild */ {
+				sys.Send(ctx, router.Target{ID: targetActorID, Ty: targetActorTy, Ev: EvChatMessageStore}, mw)
+			}
 
 			return nil
 		},

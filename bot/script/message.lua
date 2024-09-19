@@ -10,16 +10,18 @@ ByteOrder = "LittleEndian"
 function WSUnpackMsg(buf, errmsg)
 
     if errmsg ~= "nil" then
+        print("recv msg err " .. errmsg)
         return 0, ""
     end
 
     local msg = message.new(buf, ByteOrder, 0)
 
-    local msgId = msg:readi2()
-    local msgbody = msg:readBytes(2, -1)
+    local headerLen = msg:readi2()
+    local msgHeader = msg:readBytes(headerLen)
+    local msgbody = msg:readBytes(-1)
 
-    return msgId, msgbody
-    
+    return msgHeader, msgbody
+
 end
 
 function WSPackMsg(msgHead, msgBody)

@@ -16,4 +16,6 @@ const (
 	EvChatChannelMessages = "chatChannelMessages"
 	EvChatChannelAddUser  = "chatChannelAddUser"
 	EvChatChannelRmvUser  = "chatChannelRmvUser"
+
+	EvChatMessageStore = "chatMessageStore" // pubsub msg
 )

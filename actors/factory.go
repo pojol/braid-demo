@@ -1,7 +1,6 @@
 package actors
 
 import (
-	"braid-demo/actors/subactors"
 	"braid-demo/constant"
 
 	"github.com/pojol/braid/core"
@@ -46,9 +45,10 @@ func init() {
 	bind(constant.ActorWebsoketAcceptor, NewWSAcceptorActor)
 	bind(constant.ActorLogin, NewLoginActor)
 
-	bind(constant.ActorGlobalChat, subactors.NewChatActor)
-	bind(constant.ActorGuildChat, subactors.NewChatActor)
-	bind(constant.ActorPrivateChat, subactors.NewChatActor)
+	bind(constant.ActorGlobalChat, NewChatActor)
+	bind(constant.ActorGuildChat, NewChatActor)
+	bind(constant.ActorPrivateChat, NewChatActor)
+	bind(constant.ActorRouterChat, NewRouterChatActor)
 
 	bind(constant.ActorUser, NewUserActor)
 

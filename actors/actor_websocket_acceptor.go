@@ -9,7 +9,6 @@ import (
 	"context"
 	"encoding/binary"
 	"fmt"
-	"strconv"
 	"sync"
 	"time"
 
@@ -120,13 +119,14 @@ func (a *websocketAcceptorActor) received(c echo.Context) error {
 		bh := &router.Header{}
 		var actorid, actorty string
 
-		if header.Event == events.EvLogin {
+		switch header.Event {
+		case events.EvLogin:
 			actorid = def.SymbolLocalFirst
 			actorty = constant.ActorLogin
-		} else if header.Event == events.EvChatSendMessage {
+		case events.EvChatSendMessage:
 			actorid = def.SymbolLocalFirst
-			//actorty = constant.ActorChat
-		} else {
+			actorty = constant.ActorRouterChat
+		default:
 			eid, err := token.Parse(header.Token)
 			if err != nil {
 				fmt.Println(header.Token, "token.parse err", err.Error())
@@ -157,17 +157,20 @@ func (a *websocketAcceptorActor) received(c echo.Context) error {
 		buf.Reset() // Clear the buffer for reuse
 
 		if header.Event == events.EvLogin {
-			userToken = "token"
-			a.state.AddSession("token", ws)
+			userToken = sendmsg.Res.Header.Token
+			a.state.AddSession(userToken, ws)
 		}
 
-		if _, ok := sendmsg.Res.Header.Custom["msgid"]; ok {
-			resMsgID := sendmsg.Res.Header.Custom["msgid"]
-			u16msgid, _ := strconv.Atoi(resMsgID)
-			binary.Write(buf, binary.LittleEndian, uint16(u16msgid))
+		resHeader := gameproto.MsgHeader{
+			Event: header.Event,
+			Token: userToken,
 		}
 
+		resHeaderByt, _ := proto.Marshal(&resHeader)
+		binary.Write(buf, binary.LittleEndian, uint16(len(resHeaderByt)))
+		binary.Write(buf, binary.LittleEndian, resHeaderByt)
 		binary.Write(buf, binary.LittleEndian, sendmsg.Res.Body)
+
 		err = ws.WriteMessage(websocket.BinaryMessage, buf.Bytes())
 
 		// Put the buffer back in the pool immediately after use

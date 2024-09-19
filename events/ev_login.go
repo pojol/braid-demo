@@ -77,6 +77,7 @@ func MakeWSLogin(sys core.ISystem) core.IChain {
 
 			resp.Uid = e.ID
 			resp.Token = e.User.Token
+			mw.Res.Header.Token = e.User.Token
 			mw.Res.Body, _ = proto.Marshal(resp)
 
 			return nil

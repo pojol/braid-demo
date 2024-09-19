@@ -1,0 +1,554 @@
+<behavior>
+  <id>14bcccc7-f3e0-41db-b4e1-df8ac960f178</id>
+  <pos>
+    <x>390</x>
+    <y>100</y>
+  </pos>
+  <ty>RootNode</ty>
+  <children>
+    <id>2c1d2868-eda6-4ef4-ac68-da5e1d95cb4f</id>
+    <ty>ParallelNode</ty>
+    <loop>1</loop>
+    <wait>1</wait>
+    <pos>
+      <x>400</x>
+      <y>159</y>
+    </pos>
+    <children>
+      <id>43279ff6-3da6-42ee-8f67-b5e8ab8830ed</id>
+      <ty>http</ty>
+      <code>C1 = require(&#34;websocket&#34;)
+
+local ret = C1.dail(&#34;ws&#34;, &#34;127.0.0.1&#34;, &#34;8008&#34;)
+log.info(&#34;conn c1 dail &#34; .. ret)
+
+C1_QUEUE = {}
+
+
+function execute()
+    
+end</code>
+      <loop>1</loop>
+      <wait>1</wait>
+      <pos>
+        <x>280</x>
+        <y>230</y>
+      </pos>
+      <alias>user1_conn</alias>
+      <children>
+        <id>2bc081d9-6c4f-4590-806f-cb3f5f42ca1f</id>
+        <ty>ParallelNode</ty>
+        <loop>1</loop>
+        <wait>1</wait>
+        <pos>
+          <x>285</x>
+          <y>282</y>
+        </pos>
+        <children>
+          <id>bc7bad0d-744a-4cc8-b040-cda7f591b083</id>
+          <ty>LoopNode</ty>
+          <loop>0</loop>
+          <wait>1</wait>
+          <pos>
+            <x>136</x>
+            <y>376</y>
+          </pos>
+          <children>
+            <id>bfa022c9-3b25-4a7a-9320-2eaefc59a33a</id>
+            <ty>WaitNode</ty>
+            <loop>1</loop>
+            <wait>500</wait>
+            <pos>
+              <x>156</x>
+              <y>444</y>
+            </pos>
+            <children>
+              <id>6b6d4fbf-d583-449d-a2c1-09f2df613446</id>
+              <ty>http</ty>
+              <code>local proto = require(&#34;proto&#34;)
+
+function execute()
+
+  msgheader, msgbody = WSUnpackMsg(C1.read())
+  
+  if #msgheader ~= 0 then
+
+    headerByt = proto.unmarshal(&#34;gameproto.MsgHeader&#34;, msgheader)
+    header = json.decode(headerByt)
+
+    if header and header.Event and header.Event ~= &#34;&#34; then
+      log.info(&#34;c1 read==&gt; &#34;, header.Event)
+      table.insert(C1_QUEUE, {id = header.Event, body = msgbody})
+    end
+    
+  end
+  
+end
+</code>
+              <loop>1</loop>
+              <wait>1</wait>
+              <pos>
+                <x>146</x>
+                <y>499</y>
+              </pos>
+              <alias>recv</alias>
+            </children>
+          </children>
+        </children>
+        <children>
+          <id>9cef0512-7edf-46e9-8406-1e2b6c41cd60</id>
+          <ty>SequenceNode</ty>
+          <loop>1</loop>
+          <wait>1</wait>
+          <pos>
+            <x>270</x>
+            <y>376</y>
+          </pos>
+          <children>
+            <id>9aa87691-7576-412e-90b5-b7a97bebe668</id>
+            <ty>http_request</ty>
+            <code>local proto = require(&#34;proto&#34;)
+local utils = require(&#34;utils&#34;)
+--
+
+function execute()
+
+    body, errmsg = proto.marshal(&#34;gameproto.LoginReq&#34;, json.encode({
+        Uid = utils.uuid(),
+    }))
+    if errmsg ~= nil then
+        bot.Meta.Err = &#34;proto.marshal&#34; .. errmsg
+        return
+    end
+
+    head, errmsg = proto.marshal(&#34;gameproto.MsgHeader&#34;, json.encode{
+      Event = &#34;login&#34;,
+      Token = &#34;&#34;,
+    })
+  
+    local ret = C1.write(WSPackMsg(head, body))
+    log.info(&#34;c1 loing req&#34;, ret)
+
+    return state.Succ, body -- 将http response传递给 editor 中的 response 栏
+end
+
+</code>
+            <loop>1</loop>
+            <wait>1</wait>
+            <pos>
+              <x>230</x>
+              <y>424</y>
+            </pos>
+            <alias>login</alias>
+          </children>
+          <children>
+            <id>19d6a5ef-f8a8-4cab-a6d5-1b61a2358ab8</id>
+            <ty>LoopNode</ty>
+            <loop>0</loop>
+            <wait>1</wait>
+            <pos>
+              <x>320</x>
+              <y>419</y>
+            </pos>
+            <children>
+              <id>4cf81b1c-5b7f-45e9-970b-18050397b2a3</id>
+              <ty>WaitNode</ty>
+              <loop>1</loop>
+              <wait>500</wait>
+              <pos>
+                <x>340</x>
+                <y>479</y>
+              </pos>
+              <children>
+                <id>935fe7cf-8ed9-4951-b7ad-e1306b02c062</id>
+                <ty>http</ty>
+                <code>function execute()
+    CURMSG = {}
+  
+    if #C1_QUEUE == 0 then 
+      return 
+    end
+  
+    CURMSG = table.remove(C1_QUEUE, 1)
+    log.info(&#34;pop msg&#34;, CURMSG.id)
+end</code>
+                <loop>1</loop>
+                <wait>1</wait>
+                <pos>
+                  <x>330</x>
+                  <y>519</y>
+                </pos>
+                <alias>msg-pop</alias>
+                <children>
+                  <id>54343e9e-508f-4ea6-bc28-f6718c5d2311</id>
+                  <ty>SelectorNode</ty>
+                  <loop>1</loop>
+                  <wait>1</wait>
+                  <pos>
+                    <x>320</x>
+                    <y>571</y>
+                  </pos>
+                  <children>
+                    <id>5e0c18ce-9ff1-490c-8289-91b2d472ee69</id>
+                    <ty>ConditionNode</ty>
+                    <code>
+  -- Write expression to return true or false
+  function execute()
+    return CURMSG.id == &#34;login&#34;
+  end
+        </code>
+                    <loop>1</loop>
+                    <wait>1</wait>
+                    <pos>
+                      <x>260</x>
+                      <y>636</y>
+                    </pos>
+                    <alias>loginRet</alias>
+                    <children>
+                      <id>d1a38c04-ba6d-46a7-87d9-4300254c02c8</id>
+                      <ty>http</ty>
+                      <loop>1</loop>
+                      <wait>1</wait>
+                      <pos>
+                        <x>245</x>
+                        <y>700</y>
+                      </pos>
+                      <alias>send2global</alias>
+                    </children>
+                  </children>
+                  <children>
+                    <id>38d50f79-4c30-4285-9d86-f245406b7bd3</id>
+                    <ty>ConditionNode</ty>
+                    <code>
+  -- Write expression to return true or false
+  function execute()
+  
+  end
+        </code>
+                    <loop>1</loop>
+                    <wait>1</wait>
+                    <pos>
+                      <x>325</x>
+                      <y>636</y>
+                    </pos>
+                    <alias>ntf_g</alias>
+                    <children>
+                      <id>7c0188ef-0869-4803-992a-56cbd2e82306</id>
+                      <ty>http</ty>
+                      <loop>1</loop>
+                      <wait>1</wait>
+                      <pos>
+                        <x>315</x>
+                        <y>733</y>
+                      </pos>
+                      <alias>newGlobalMsg</alias>
+                    </children>
+                  </children>
+                  <children>
+                    <id>4b9dd93f-9336-4ce8-be98-1653913d969a</id>
+                    <ty>ConditionNode</ty>
+                    <code>
+  -- Write expression to return true or false
+  function execute()
+  
+  end
+        </code>
+                    <loop>1</loop>
+                    <wait>1</wait>
+                    <pos>
+                      <x>390</x>
+                      <y>636</y>
+                    </pos>
+                    <alias>ntf_prv</alias>
+                    <children>
+                      <id>faed4ffc-63f8-4720-904d-e8cdf4af7c27</id>
+                      <ty>http</ty>
+                      <loop>1</loop>
+                      <wait>1</wait>
+                      <pos>
+                        <x>380</x>
+                        <y>690</y>
+                      </pos>
+                      <alias>send2user2</alias>
+                      <code>local proto = require(&#34;proto&#34;)
+local utils = require(&#34;utils&#34;)
+--
+
+function execute()
+
+  loginbson = proto.unmarshal(&#34;gameproto.LoginResp&#34;, CURMSG.body)
+  bot.Login = {}
+  merge(bot.Login, json.decode(loginbson))
+  
+  body, errmsg = proto.marshal(&#34;gameproto.ChatSendReq&#34;, json.encode({
+      Msg = {
+        SenderID = bot.Login.Uid,
+        ReceiverID = &#34;2fd3328f-a697-41e8-a47b-39baab6a59f0&#34;, -- 某个离线玩家
+        Content = &#34;test-a2b&#34;,
+        Channel = &#34;chatPrivate&#34;,
+      },
+  }))
+  if errmsg ~= nil then
+      bot.Meta.Err = &#34;proto.marshal&#34; .. errmsg
+      return
+  end
+
+  head, errmsg = proto.marshal(&#34;gameproto.MsgHeader&#34;, json.encode{
+    Event = &#34;chatSendMessage&#34;,
+    Token = bot.Login.Token,
+  })
+
+  local ret = C1.write(WSPackMsg(head, body))
+  log.info(&#34;c1 send private message req&#34;, ret)
+
+  return state.Succ, body
+
+end</code>
+                    </children>
+                  </children>
+                </children>
+              </children>
+            </children>
+          </children>
+        </children>
+      </children>
+    </children>
+    <children>
+      <id>75f71780-0f31-4be9-8852-1f449d54d2b2</id>
+      <ty>http</ty>
+      <code>
+C2 = require(&#34;websocket&#34;)
+
+local ret = C2.dail(&#34;ws&#34;, &#34;127.0.0.1&#34;, &#34;8008&#34;)
+log.info(&#34;conn c1 dail &#34; .. ret)
+
+C2_QUEUE = {}
+
+
+function execute()
+    
+end</code>
+      <loop>1</loop>
+      <wait>1</wait>
+      <pos>
+        <x>510</x>
+        <y>230</y>
+      </pos>
+      <alias>user2_conn</alias>
+      <children>
+        <id>ac6f1541-3c57-48ea-a3c0-de7d109a5d00</id>
+        <ty>ParallelNode</ty>
+        <loop>1</loop>
+        <wait>1</wait>
+        <pos>
+          <x>515</x>
+          <y>282</y>
+        </pos>
+        <children>
+          <id>dbf5a1af-8e98-4dda-bbf8-47b7753b4929</id>
+          <ty>LoopNode</ty>
+          <loop>0</loop>
+          <wait>1</wait>
+          <pos>
+            <x>421</x>
+            <y>354</y>
+          </pos>
+          <children>
+            <id>040649d3-d701-4337-8cf0-d2dd1fab9383</id>
+            <ty>WaitNode</ty>
+            <loop>1</loop>
+            <wait>500</wait>
+            <pos>
+              <x>440</x>
+              <y>430</y>
+            </pos>
+            <children>
+              <id>b491431f-9cf6-4f41-9271-9e3dd86d8a77</id>
+              <ty>http</ty>
+              <code>local proto = require(&#34;proto&#34;)
+
+function execute()
+
+  msgheader, msgbody = WSUnpackMsg(C2.read())
+
+  header = proto.unmarshal(&#34;gameproto.MsgHeader&#34;, msgheader)
+  
+  
+  if header and header.Event and header.Event ~= &#34;&#34; then
+    print(&#34;c2 read==&gt; &#34;, header.Event, msgbody)
+    table.insert(C1_QUEUE, {id = header.Event, body = msgbody})
+  end
+end</code>
+              <loop>1</loop>
+              <wait>1</wait>
+              <pos>
+                <x>430</x>
+                <y>499</y>
+              </pos>
+              <alias>recv</alias>
+            </children>
+          </children>
+        </children>
+        <children>
+          <id>580abb16-a93c-4820-af21-7759a659aab2</id>
+          <ty>SequenceNode</ty>
+          <loop>1</loop>
+          <wait>1</wait>
+          <pos>
+            <x>550</x>
+            <y>361</y>
+          </pos>
+          <children>
+            <id>011507f2-da15-4a6e-8509-d0058747cd44</id>
+            <ty>http</ty>
+            <code>local proto = require(&#34;proto&#34;)
+local utils = require(&#34;utils&#34;)
+--
+
+function execute()
+
+    body, errmsg = proto.marshal(&#34;gameproto.LoginReq&#34;, json.encode({
+        Uid = utils.uuid(),
+    }))
+    if errmsg ~= nil then
+        bot.Meta.Err = &#34;proto.marshal&#34; .. errmsg
+        return
+    end
+
+    head, errmsg = proto.marshal(&#34;gameproto.MsgHeader&#34;, json.encode{
+      Event = &#34;login&#34;,
+      Token = &#34;&#34;,
+    })
+  
+    local ret = C2.write(WSPackMsg(head, body))
+    print(&#34;login req &#34; .. ret)
+
+    return state.Succ, body -- 将http response传递给 editor 中的 response 栏
+end</code>
+            <loop>1</loop>
+            <wait>1</wait>
+            <pos>
+              <x>510</x>
+              <y>424</y>
+            </pos>
+            <alias>login</alias>
+          </children>
+          <children>
+            <id>6bb4cb79-60f5-4145-81f9-5f859e190cda</id>
+            <ty>LoopNode</ty>
+            <loop>0</loop>
+            <wait>1</wait>
+            <pos>
+              <x>600</x>
+              <y>419</y>
+            </pos>
+            <children>
+              <id>c494b620-c77b-4241-8c48-565ba2401ec8</id>
+              <ty>WaitNode</ty>
+              <loop>1</loop>
+              <wait>500</wait>
+              <pos>
+                <x>620</x>
+                <y>479</y>
+              </pos>
+              <children>
+                <id>281b4d8d-5098-4e2f-8012-af86250e08e2</id>
+                <ty>SelectorNode</ty>
+                <loop>1</loop>
+                <wait>1</wait>
+                <pos>
+                  <x>600</x>
+                  <y>536</y>
+                </pos>
+                <children>
+                  <id>5aac6408-b7de-4851-9d5d-9a3c3ea19f4d</id>
+                  <ty>ConditionNode</ty>
+                  <code>
+  -- Write expression to return true or false
+  function execute()
+  
+  end
+        </code>
+                  <loop>1</loop>
+                  <wait>1</wait>
+                  <pos>
+                    <x>540</x>
+                    <y>599</y>
+                  </pos>
+                  <alias>loginRet</alias>
+                  <children>
+                    <id>cea42332-91ca-4fb8-bd47-217d487c289f</id>
+                    <ty>http</ty>
+                    <loop>1</loop>
+                    <wait>1</wait>
+                    <pos>
+                      <x>530</x>
+                      <y>653</y>
+                    </pos>
+                    <alias>send2user1</alias>
+                  </children>
+                </children>
+                <children>
+                  <id>a10f2175-21f9-4926-8eed-71210324d58b</id>
+                  <ty>ConditionNode</ty>
+                  <code>
+  -- Write expression to return true or false
+  function execute()
+  
+  end
+        </code>
+                  <loop>1</loop>
+                  <wait>1</wait>
+                  <pos>
+                    <x>620</x>
+                    <y>599</y>
+                  </pos>
+                  <alias>ntf_g</alias>
+                  <children>
+                    <id>35d7d486-700b-43e1-a423-2bb78977cba7</id>
+                    <ty>http</ty>
+                    <loop>1</loop>
+                    <wait>1</wait>
+                    <pos>
+                      <x>610</x>
+                      <y>710</y>
+                    </pos>
+                    <alias>newGlobalMsg</alias>
+                  </children>
+                </children>
+                <children>
+                  <id>1a811de4-6e3f-4d63-a183-772d11bed696</id>
+                  <ty>ConditionNode</ty>
+                  <code>
+  -- Write expression to return true or false
+  function execute()
+  
+  end
+        </code>
+                  <loop>1</loop>
+                  <wait>1</wait>
+                  <pos>
+                    <x>693</x>
+                    <y>599</y>
+                  </pos>
+                  <alias>ntf_prv</alias>
+                  <children>
+                    <id>f721857b-6b6c-4040-bd89-299d00e910a7</id>
+                    <ty>http</ty>
+                    <loop>1</loop>
+                    <wait>1</wait>
+                    <pos>
+                      <x>683</x>
+                      <y>646</y>
+                    </pos>
+                    <alias>send2global</alias>
+                  </children>
+                </children>
+              </children>
+            </children>
+          </children>
+        </children>
+      </children>
+    </children>
+  </children>
+</behavior>

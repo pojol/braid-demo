@@ -1,4 +1,4 @@
-package subactors
+package actors
 
 import (
 	"braid-demo/events"
@@ -15,7 +15,7 @@ type chatChannelActor struct {
 
 func NewChatActor(p *core.CreateActorParm) core.IActor {
 	return &chatChannelActor{
-		Runtime: &actor.Runtime{Id: p.ID, Ty: p.Options["channel"].(string) + "Actor", Sys: p.Sys},
+		Runtime: &actor.Runtime{Id: p.ID, Ty: p.Options["channel"].(string), Sys: p.Sys},
 		state: &chat.State{
 			Channel: p.Options["channel"].(string),
 		},

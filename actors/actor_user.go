@@ -35,7 +35,7 @@ func (a *mockUserActor) Init() {
 	a.RegisterEvent(events.EvUserChatAddChannel, events.MakeChatAddChannel(a.entity))
 	a.RegisterEvent(events.EvUserChatRemoveChannel, events.MakeChatRemoveChannel(a.entity))
 
-	a.Sys.Register(context.TODO(), constant.ChatPrivateChannel,
+	a.Sys.Register(context.TODO(), constant.ActorPrivateChat,
 		core.CreateActorWithID("chat."+constant.ChatPrivateChannel+"."+a.Id),
 		core.CreateActorWithOption("channel", constant.ChatPrivateChannel),
 		core.CreateActorWithOption("actorID", a.Id),
