@@ -8,6 +8,7 @@ import (
 	"braid-demo/models/user"
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/gogo/protobuf/proto"
 	"github.com/google/uuid"
@@ -49,6 +50,10 @@ func MakeWSLogin(sys core.ISystem) core.IChain {
 
 				e.ID = uuid.NewString()
 				e.User.Token, _ = token.Create(e.ID)
+				e.TimeInfo = &user.EntityTimeInfoModule{
+					ID:         e.ID,
+					CreateTime: time.Now().Unix(),
+				}
 
 				_, err = mgo.Collection(constant.MongoDatabase, constant.MongoCollection).InsertOne(ctx, e)
 				if err != nil {
@@ -66,7 +71,11 @@ func MakeWSLogin(sys core.ISystem) core.IChain {
 			}
 
 			// 注册到本节点
-			userActor, err := sys.Register(ctx, constant.ActorUser, core.CreateActorWithID(e.ID))
+			userActor, err := sys.Register(ctx,
+				constant.ActorUser,
+				core.CreateActorWithID(e.ID),
+				core.CreateActorWithOption("gateActor", mw.Req.Header.OrgActorID),
+			)
 			if err != nil {
 				fmt.Println("login ->", "regist actor err", err.Error())
 				return err

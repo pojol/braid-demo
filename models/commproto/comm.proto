@@ -1,15 +1,15 @@
 syntax = "proto3";
 package commproto;
 
+// import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+import "gogo/gogo.proto";
 
 message Item {
-  string ID = 1;  // item instance id （unique id）
-  int32 DictID = 2;  // dictionary id （config id）
-  int32 Num = 3; 
+  string ID = 1 [(gogoproto.moretags) = "bson:\"id\""];
+  int32 DictID = 2 [(gogoproto.moretags) = "bson:\"dict_id\""];  // dictionary id （config id）
+  int32 Num = 3 [(gogoproto.moretags) = "bson:\"num\""];
 }
 
 message ItemList {
-  repeated Item Items = 1;
+  repeated Item Items = 1 [(gogoproto.moretags) = "bson:\"items\""];
 }
-
-

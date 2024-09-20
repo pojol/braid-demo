@@ -211,9 +211,43 @@ end</code>
                       <wait>1</wait>
                       <pos>
                         <x>245</x>
-                        <y>700</y>
+                        <y>690</y>
                       </pos>
                       <alias>send2global</alias>
+                      <code>local proto = require(&#34;proto&#34;)
+local utils = require(&#34;utils&#34;)
+--
+
+function execute()
+  loginbson = proto.unmarshal(&#34;gameproto.LoginResp&#34;, CURMSG.body)
+  bot.Login = {}
+  merge(bot.Login, json.decode(loginbson))
+  
+  body, errmsg = proto.marshal(&#34;gameproto.ChatSendReq&#34;, json.encode({
+      Msg = {
+        SenderID = bot.Login.Uid,
+        ReceiverID = &#34;2fd3328f-a697-41e8-a47b-39baab6a59f0&#34;, -- 某个离线玩家
+        Content = &#34;test-global-1&#34;,
+        Channel = &#34;chatGlobal&#34;,
+      },
+  }))
+  if errmsg ~= nil then
+      bot.Meta.Err = &#34;proto.marshal&#34; .. errmsg
+      return
+  end
+
+  head, errmsg = proto.marshal(&#34;gameproto.MsgHeader&#34;, json.encode{
+    Event = &#34;chatSendMessage&#34;,
+    Token = bot.Login.Token,
+  })
+
+  local ret = C1.write(WSPackMsg(head, body))
+  log.info(&#34;c1 send chatSendMessage req&#34;, ret)
+
+  return state.Succ, body
+
+end
+</code>
                     </children>
                   </children>
                   <children>
@@ -276,9 +310,6 @@ local utils = require(&#34;utils&#34;)
 
 function execute()
 
-  loginbson = proto.unmarshal(&#34;gameproto.LoginResp&#34;, CURMSG.body)
-  bot.Login = {}
-  merge(bot.Login, json.decode(loginbson))
   
   body, errmsg = proto.marshal(&#34;gameproto.ChatSendReq&#34;, json.encode({
       Msg = {

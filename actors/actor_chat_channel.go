@@ -3,9 +3,12 @@ package actors
 import (
 	"braid-demo/events"
 	"braid-demo/models/chat"
+	"time"
 
 	"github.com/pojol/braid/core"
 	"github.com/pojol/braid/core/actor"
+	"github.com/pojol/braid/lib/log"
+	"github.com/pojol/braid/lib/pubsub"
 )
 
 type chatChannelActor struct {
@@ -27,6 +30,13 @@ func (a *chatChannelActor) Init() {
 
 	a.RegisterEvent(events.EvChatChannelReceived, events.MakeChatRecved(a.Sys, a.state))
 	a.RegisterEvent(events.EvChatChannelMessages, events.MakeChatMessages())
-	a.RegisterEvent(events.EvChatChannelAddUser, &actor.DefaultChain{})
-	a.RegisterEvent(events.EvChatChannelRmvUser, &actor.DefaultChain{})
+	a.RegisterEvent(events.EvChatChannelAddUser, events.MakeChatAddUser(a.Sys, a.state))
+	a.RegisterEvent(events.EvChatChannelRmvUser, events.MakeChatRemoveUser(a.Sys, a.state))
+
+	err := a.SubscriptionEvent(events.EvChatMessageStore, a.Id, func() {
+		a.RegisterEvent(events.EvChatMessageStore, events.MakeChatStoreMessage(a.Sys, a.state))
+	}, pubsub.WithTTL(time.Hour*24*30))
+	if err != nil {
+		log.Warn("actor %v ty %v subscription event %v err %v", a.Id, a.Ty, events.EvChatMessageStore, err.Error())
+	}
 }

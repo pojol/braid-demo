@@ -1,13 +1,14 @@
 package events
 
 import (
+	"braid-demo/models/gameproto"
 	"braid-demo/models/session"
 	"bytes"
 	"context"
 	"encoding/binary"
-	"strconv"
 	"sync"
 
+	"github.com/gogo/protobuf/proto"
 	"github.com/gorilla/websocket"
 	"github.com/pojol/braid/core"
 	"github.com/pojol/braid/core/actor"
@@ -27,9 +28,9 @@ func MakeWebsocketNotify(state *session.State) core.IChain {
 
 		Handler: func(ctx context.Context, mw *router.MsgWrapper) error {
 
-			conn, ok := state.GetSession(mw.Req.Header.Token)
+			conn, ok := state.GetSession(mw.Res.Header.Token)
 			if !ok {
-				log.Warn("websocket get session err, token : %v", mw.Req.Header.Token)
+				log.Warn("websocket get session err, token : %v", mw.Res.Header.Token)
 				return nil
 			}
 
@@ -37,13 +38,16 @@ func MakeWebsocketNotify(state *session.State) core.IChain {
 			buf := bufferPool.Get().(*bytes.Buffer)
 			buf.Reset() // Clear the buffer for reuse
 
-			if _, ok := mw.Res.Header.Custom["msgid"]; ok {
-				resMsgID := mw.Res.Header.Custom["msgid"]
-				u16msgid, _ := strconv.Atoi(resMsgID)
-				binary.Write(buf, binary.LittleEndian, uint16(u16msgid))
+			resHeader := gameproto.MsgHeader{
+				Event: mw.Res.Header.Event,
+				Token: mw.Req.Header.Token,
 			}
 
+			resHeaderByt, _ := proto.Marshal(&resHeader)
+			binary.Write(buf, binary.LittleEndian, uint16(len(resHeaderByt)))
+			binary.Write(buf, binary.LittleEndian, resHeaderByt)
 			binary.Write(buf, binary.LittleEndian, mw.Res.Body)
+
 			err := conn.WriteMessage(websocket.BinaryMessage, buf.Bytes())
 			if err != nil {
 				return err

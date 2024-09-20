@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/pojol/braid/core"
 	"github.com/pojol/braid/core/actor"
 	"github.com/pojol/braid/def"
@@ -36,18 +37,31 @@ func MakeChatSendCmd(sys core.ISystem) core.IChain {
 				targetActorTy = req.Msg.Channel
 			case constant.ChatGlobalChannel, constant.ChatGuildChannel:
 				targetActorID = def.SymbolLocalFirst
-				targetActorTy = req.Msg.Channel
+				if req.Msg.Channel == constant.ChatGlobalChannel {
+					targetActorTy = constant.ActorGlobalChat
+				} else if req.Msg.Channel == constant.ChatGuildChannel {
+					targetActorTy = constant.ActorGuildChat
+				}
 			default:
 				log.Info("actor %v sent chat message is unknown channel %v", req.Msg.SenderID, req.Msg.Channel)
 				return nil
 			}
 
 			err := sys.Call(ctx, router.Target{ID: targetActorID, Ty: targetActorTy, Ev: EvChatChannelReceived}, mw)
+			if err != nil {
+				fmt.Println("call", targetActorTy, err.Error())
+			}
 			// If the error type is that the target actor cannot be found in the address book
 			// If the target actor is a valid ID
 			// Send the message to the target actor's message queue, waiting for consumption after login
 			if err == fmt.Errorf("unknown actor") /* && actor is vaild */ {
-				sys.Send(ctx, router.Target{ID: targetActorID, Ty: targetActorTy, Ev: EvChatMessageStore}, mw)
+				sys.Pub(ctx, EvChatMessageStore, &router.Message{
+					Header: &router.Header{
+						ID:    uuid.NewString(),
+						Event: targetActorID,
+					},
+					Body: mw.Req.Body,
+				})
 			}
 
 			return nil

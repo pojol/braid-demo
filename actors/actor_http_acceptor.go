@@ -49,7 +49,7 @@ func (a *httpAcceptorActor) Init() {
 			return c.Blob(http.StatusBadRequest, echo.MIMEApplicationJSON, nil)
 		}
 
-		msg := router.NewMsg().WithReqBody(bts).Build()
+		msg := router.NewMsgWrap().WithReqBody(bts).Build()
 
 		err = a.Call(c.Request().Context(),
 			router.Target{ID: a.Id, Ty: a.Ty, Ev: strings.TrimPrefix(c.Request().URL.Path, "/")},

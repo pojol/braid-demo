@@ -138,7 +138,7 @@ func (a *websocketAcceptorActor) received(c echo.Context) error {
 			bh.Token = header.Token
 		}
 
-		sendmsg := router.NewMsg().WithReqHeader(bh).WithReqBody(msg[2+headerlen:]).Build()
+		sendmsg := router.NewMsgWrap().WithReqHeader(bh).WithReqBody(msg[2+headerlen:]).Build()
 
 		// Perform the system call with the timeout context
 		err = a.Call(ctx, router.Target{

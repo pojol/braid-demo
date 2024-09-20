@@ -6,7 +6,6 @@ import (
 	"braid-demo/models/chat"
 	"braid-demo/models/gameproto"
 	"context"
-	"fmt"
 
 	"github.com/gogo/protobuf/proto"
 	"github.com/pojol/braid/core"
@@ -26,7 +25,6 @@ func MakeChatRecved(sys core.ISystem, state *chat.State) core.IChain {
 			req := unpackCfg.Msg.(*gameproto.ChatSendReq)
 
 			state.MsgHistory = append(state.MsgHistory, *req.Msg)
-			fmt.Println("actor", req.Msg.ReceiverID, "recved chat message", req.Msg.Content, "from", req.Msg.SenderID)
 
 			notify := gameproto.ChatMessageNotify{
 				MsgLst: []*gameproto.ChatMessage{
@@ -42,16 +40,32 @@ func MakeChatRecved(sys core.ISystem, state *chat.State) core.IChain {
 					mw,
 				)
 			} else {
-				sys.Send(ctx,
-					router.Target{
-						ID:    def.SymbolGroup,
-						Ty:    constant.ActorWebsoketAcceptor,
-						Ev:    EvWebsoketNotify,
-						Group: state.GetAllGateID(),
-					},
-					mw,
-				)
+
+				for _, v := range state.Users {
+
+					mw.Res.Header.Token = v.ActorToken
+					mw.Res.Header.Event = EvChatMessageNty
+
+					sys.Send(ctx,
+						router.Target{
+							ID: v.ActorGate,
+							Ty: constant.ActorWebsoketAcceptor,
+							Ev: EvWebsoketNotify,
+						},
+						mw,
+					)
+				}
+
 			}
+
+			return nil
+		},
+	}
+}
+
+func MakeChatStoreMessage(sys core.ISystem, state *chat.State) core.IChain {
+	return &actor.DefaultChain{
+		Handler: func(ctx context.Context, mw *router.MsgWrapper) error {
 
 			return nil
 		},
