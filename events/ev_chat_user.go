@@ -10,15 +10,17 @@ import (
 	"github.com/pojol/braid/router"
 )
 
-func MakeChatAddUser(sys core.ISystem, state *chat.State) core.IChain {
+func MakeChatAddUser(actorCtx context.Context) core.IChain {
 	return &actor.DefaultChain{
 		Handler: func(ctx context.Context, mw *router.MsgWrapper) error {
+
+			state := core.GetState(actorCtx).(*chat.State)
 
 			userToken := mw.Req.Header.Token
 			userID := mw.Req.Header.Custom["actor"]
 			gateID := mw.Req.Header.Custom["gateActor"]
 
-			state.Users = append(state.Users, comm.UserSession{
+			state.AddUserSession(comm.UserSession{
 				ActorID:    userID,
 				ActorToken: userToken,
 				ActorGate:  gateID,
@@ -29,6 +31,18 @@ func MakeChatAddUser(sys core.ISystem, state *chat.State) core.IChain {
 	}
 }
 
-func MakeChatRemoveUser(sys core.ISystem, state *chat.State) core.IChain {
-	return &actor.DefaultChain{}
+func MakeChatRemoveUser(actorCtx context.Context) core.IChain {
+	return &actor.DefaultChain{
+		Handler: func(ctx context.Context, mw *router.MsgWrapper) error {
+			state := core.GetState(actorCtx).(*chat.State)
+
+			userID := mw.Req.Header.Custom["actor"]
+
+			if userID != "" {
+				state.RmvUserSession(userID)
+			}
+
+			return nil
+		},
+	}
 }

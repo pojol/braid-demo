@@ -13,7 +13,7 @@ import (
 	"github.com/pojol/braid/router"
 )
 
-func HttpHello() core.IChain {
+func HttpHello(actorCtx context.Context) core.IChain {
 
 	unpackCfg := &middleware.MessageUnpackCfg[*gameproto.HelloReq]{}
 

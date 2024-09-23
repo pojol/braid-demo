@@ -13,7 +13,7 @@ import (
 	"github.com/pojol/braid/router"
 )
 
-func MakeUserUseItem(entity *user.EntityWrapper) core.IChain {
+func MakeUserUseItem(actorCtx context.Context) core.IChain {
 	unpackCfg := &middleware.MessageUnpackCfg[*gameproto.CrudUseItemReq]{}
 
 	return &actor.DefaultChain{
@@ -21,6 +21,7 @@ func MakeUserUseItem(entity *user.EntityWrapper) core.IChain {
 		Handler: func(ctx context.Context, mw *router.MsgWrapper) error {
 
 			req := unpackCfg.Msg.(*gameproto.CrudUseItemReq)
+			entity := core.GetState(actorCtx).(*user.EntityWrapper)
 
 			fmt.Println("req use item id:", req.Items)
 			if entity.Bag.EnoughItems(req.Items.Items) {

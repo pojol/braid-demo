@@ -56,6 +56,7 @@ func NewWSAcceptorActor(p *core.CreateActorParm) core.IActor {
 
 func (a *websocketAcceptorActor) Init() {
 	a.Runtime.Init()
+	a.SetContext(core.StateKey{}, a.state)
 
 	recovercfg := middleware.DefaultRecoverConfig
 	recovercfg.LogErrorFunc = func(c echo.Context, err error, stack []byte) error {
@@ -66,7 +67,7 @@ func (a *websocketAcceptorActor) Init() {
 	a.echoptr.Use(middleware.CORS())
 
 	a.echoptr.GET("/ws", a.received)
-	a.RegisterEvent(events.EvWebsoketNotify, events.MakeWebsocketNotify(a.state))
+	a.RegisterEvent(events.EvWebsoketNotify, events.MakeWebsocketNotify)
 }
 
 func (a *websocketAcceptorActor) received(c echo.Context) error {

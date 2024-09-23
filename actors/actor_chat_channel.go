@@ -28,13 +28,13 @@ func NewChatActor(p *core.CreateActorParm) core.IActor {
 func (a *chatChannelActor) Init() {
 	a.Runtime.Init()
 
-	a.RegisterEvent(events.EvChatChannelReceived, events.MakeChatRecved(a.Sys, a.state))
-	a.RegisterEvent(events.EvChatChannelMessages, events.MakeChatMessages())
-	a.RegisterEvent(events.EvChatChannelAddUser, events.MakeChatAddUser(a.Sys, a.state))
-	a.RegisterEvent(events.EvChatChannelRmvUser, events.MakeChatRemoveUser(a.Sys, a.state))
+	a.RegisterEvent(events.EvChatChannelReceived, events.MakeChatRecved)
+	a.RegisterEvent(events.EvChatChannelMessages, events.MakeChatMessages)
+	a.RegisterEvent(events.EvChatChannelAddUser, events.MakeChatAddUser)
+	a.RegisterEvent(events.EvChatChannelRmvUser, events.MakeChatRemoveUser)
 
 	err := a.SubscriptionEvent(events.EvChatMessageStore, a.Id, func() {
-		a.RegisterEvent(events.EvChatMessageStore, events.MakeChatStoreMessage(a.Sys, a.state))
+		a.RegisterEvent(events.EvChatMessageStore, events.MakeChatStoreMessage)
 	}, pubsub.WithTTL(time.Hour*24*30))
 	if err != nil {
 		log.Warn("actor %v ty %v subscription event %v err %v", a.Id, a.Ty, events.EvChatMessageStore, err.Error())

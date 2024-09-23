@@ -22,7 +22,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func MakeWSLogin(sys core.ISystem) core.IChain {
+func MakeWSLogin(actorCtx context.Context) core.IChain {
 	unpackCfg := &middleware.MessageUnpackCfg[*gameproto.LoginReq]{}
 
 	return &actor.DefaultChain{
@@ -30,6 +30,7 @@ func MakeWSLogin(sys core.ISystem) core.IChain {
 		Handler: func(ctx context.Context, mw *router.MsgWrapper) error {
 			req := unpackCfg.Msg.(*gameproto.LoginReq)
 			resp := &gameproto.LoginResp{}
+			sys := core.GetSystem(actorCtx)
 
 			// 检查 db 是否存在， 创建 / 登录
 			e := &user.EntityWrapper{

@@ -42,7 +42,7 @@ func main() {
 		panic(fmt.Errorf("node init err %v", err.Error()))
 	}
 
-	helloActor.RegisterEvent(events.EvHttpHello, events.HttpHello())
+	helloActor.RegisterEvent(events.EvHttpHello, events.HttpHello)
 
 	nod.Update()
 

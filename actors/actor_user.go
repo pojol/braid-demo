@@ -34,11 +34,11 @@ func (a *mockUserActor) Init() {
 	if err != nil {
 		panic(fmt.Errorf("load user actor err %v", err.Error()))
 	}
+	a.SetContext(core.StateKey{}, a.entity)
 
-	a.RegisterEvent(events.EvUserUseItem, events.MakeUserUseItem(a.entity))
-
-	a.RegisterEvent(events.EvUserChatAddChannel, events.MakeChatAddChannel(a.entity))
-	a.RegisterEvent(events.EvUserChatRemoveChannel, events.MakeChatRemoveChannel(a.entity))
+	a.RegisterEvent(events.EvUserUseItem, events.MakeUserUseItem)
+	a.RegisterEvent(events.EvUserChatAddChannel, events.MakeChatAddChannel)
+	a.RegisterEvent(events.EvUserChatRemoveChannel, events.MakeChatRemoveChannel)
 
 	a.Sys.Register(context.TODO(), constant.ActorPrivateChat,
 		core.CreateActorWithID("chat."+constant.ChatPrivateChannel+"."+a.Id),

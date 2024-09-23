@@ -22,12 +22,12 @@ var bufferPool = sync.Pool{
 	},
 }
 
-func MakeWebsocketNotify(state *session.State) core.IChain {
+func MakeWebsocketNotify(actorCtx context.Context) core.IChain {
 
 	return &actor.DefaultChain{
 
 		Handler: func(ctx context.Context, mw *router.MsgWrapper) error {
-
+			state := core.GetState(actorCtx).(*session.State)
 			conn, ok := state.GetSession(mw.Res.Header.Token)
 			if !ok {
 				log.Warn("websocket get session err, token : %v", mw.Res.Header.Token)

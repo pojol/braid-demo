@@ -3,7 +3,6 @@ package events
 import (
 	"braid-demo/middleware"
 	"braid-demo/models/gameproto"
-	"braid-demo/models/user"
 	"context"
 	"fmt"
 
@@ -12,7 +11,7 @@ import (
 	"github.com/pojol/braid/router"
 )
 
-func MakeChatAddChannel(e *user.EntityWrapper) core.IChain {
+func MakeChatAddChannel(actorCtx context.Context) core.IChain {
 
 	unpackCfg := &middleware.MessageUnpackCfg[*gameproto.ChatAddChannelReq]{}
 
@@ -21,6 +20,22 @@ func MakeChatAddChannel(e *user.EntityWrapper) core.IChain {
 		Handler: func(ctx context.Context, mw *router.MsgWrapper) error {
 
 			req := unpackCfg.Msg.(*gameproto.ChatAddChannelReq)
+			fmt.Println(req.Channels)
+
+			return nil
+		},
+	}
+}
+
+func MakeChatRemoveChannel(actorCtx context.Context) core.IChain {
+
+	unpackCfg := &middleware.MessageUnpackCfg[*gameproto.ChatRmvChannelReq]{}
+
+	return &actor.DefaultChain{
+		Before: []actor.MiddlewareHandler{middleware.MessageUnpack(unpackCfg)},
+		Handler: func(ctx context.Context, mw *router.MsgWrapper) error {
+
+			req := unpackCfg.Msg.(*gameproto.ChatRmvChannelReq)
 			fmt.Println(req.Channels)
 
 			return nil

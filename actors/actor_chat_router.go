@@ -21,5 +21,5 @@ func NewRouterChatActor(p *core.CreateActorParm) core.IActor {
 func (a *chatRouterActor) Init() {
 	a.Runtime.Init()
 
-	a.RegisterEvent(events.EvChatSendMessage, events.MakeChatSendCmd(a.Sys))
+	a.RegisterEvent(events.EvChatSendMessage, events.MakeChatSendCmd)
 }

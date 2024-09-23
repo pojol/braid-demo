@@ -61,7 +61,7 @@ func main() {
 		panic(fmt.Errorf("node init err %v", err.Error()))
 	}
 
-	loginActor.RegisterEvent(events.EvLogin, events.MakeWSLogin(nod.System()))
+	loginActor.RegisterEvent(events.EvLogin, events.MakeWSLogin)
 
 	nod.Update()
 

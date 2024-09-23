@@ -21,5 +21,5 @@ func NewLoginActor(p *core.CreateActorParm) core.IActor {
 func (a *loginActor) Init() {
 	a.Runtime.Init()
 
-	a.RegisterEvent(events.EvLogin, events.MakeWSLogin(a.Sys))
+	a.RegisterEvent(events.EvLogin, events.MakeWSLogin)
 }
