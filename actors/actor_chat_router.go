@@ -12,9 +12,9 @@ type chatRouterActor struct {
 	*actor.Runtime
 }
 
-func NewRouterChatActor(p *core.CreateActorParm) core.IActor {
+func NewRouterChatActor(p *core.ActorLoaderBuilder) core.IActor {
 	return &chatRouterActor{
-		Runtime: &actor.Runtime{Id: p.ID, Ty: constant.ActorRouterChat, Sys: p.Sys},
+		Runtime: &actor.Runtime{Id: p.ID, Ty: constant.ActorRouterChat, Sys: p.ISystem},
 	}
 }
 

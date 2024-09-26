@@ -16,9 +16,9 @@ type chatChannelActor struct {
 	state *chat.State
 }
 
-func NewChatActor(p *core.CreateActorParm) core.IActor {
+func NewChatActor(p *core.ActorLoaderBuilder) core.IActor {
 	return &chatChannelActor{
-		Runtime: &actor.Runtime{Id: p.ID, Ty: p.Options["channel"].(string), Sys: p.Sys},
+		Runtime: &actor.Runtime{Id: p.ID, Ty: p.Options["channel"].(string), Sys: p.ISystem},
 		state: &chat.State{
 			Channel: p.Options["channel"].(string),
 		},

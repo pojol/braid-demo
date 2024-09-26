@@ -12,9 +12,9 @@ type loginActor struct {
 	*actor.Runtime
 }
 
-func NewLoginActor(p *core.CreateActorParm) core.IActor {
+func NewLoginActor(p *core.ActorLoaderBuilder) core.IActor {
 	return &loginActor{
-		Runtime: &actor.Runtime{Id: p.ID, Ty: constant.ActorLogin, Sys: p.Sys},
+		Runtime: &actor.Runtime{Id: p.ID, Ty: constant.ActorLogin, Sys: p.ISystem},
 	}
 }
 

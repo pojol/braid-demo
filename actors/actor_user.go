@@ -20,9 +20,9 @@ type mockUserActor struct {
 	entity    *user.EntityWrapper
 }
 
-func NewUserActor(p *core.CreateActorParm) core.IActor {
+func NewUserActor(p *core.ActorLoaderBuilder) core.IActor {
 	return &mockUserActor{
-		Runtime:   &actor.Runtime{Id: p.ID, Ty: constant.ActorUser, Sys: p.Sys},
+		Runtime:   &actor.Runtime{Id: p.ID, Ty: constant.ActorUser, Sys: p.ISystem},
 		gateActor: p.Options["gateActor"].(string),
 		entity:    user.NewEntityWapper(p.ID),
 	}
@@ -40,11 +40,10 @@ func (a *mockUserActor) Init() {
 	a.RegisterEvent(events.EvUserChatAddChannel, events.MakeChatAddChannel)
 	a.RegisterEvent(events.EvUserChatRemoveChannel, events.MakeChatRemoveChannel)
 
-	a.Sys.Register(context.TODO(), constant.ActorPrivateChat,
-		core.CreateActorWithID("chat."+constant.ChatPrivateChannel+"."+a.Id),
-		core.CreateActorWithOption("channel", constant.ChatPrivateChannel),
-		core.CreateActorWithOption("actorID", a.Id),
-	)
+	a.Sys.Loader().Builder(constant.ActorPrivateChat).
+		WithID("chat."+constant.ChatPrivateChannel+"."+a.Id).
+		WithOpt("channel", constant.ChatPrivateChannel).
+		WithOpt("actorID", a.Id).RegisterDynamically()
 
 	a.Sys.Call(context.TODO(),
 		router.Target{ID: def.SymbolLocalFirst, Ty: constant.ActorGlobalChat, Ev: events.EvChatChannelAddUser},

@@ -3,8 +3,6 @@ package main
 import (
 	"braid-demo/actors"
 	"braid-demo/constant"
-	"braid-demo/events"
-	"context"
 	"fmt"
 
 	"github.com/pojol/braid/3rd/mgo"
@@ -34,48 +32,18 @@ func main() {
 	nodeid := "xxx"
 
 	nod := node.BuildProcessWithOption(
-		core.WithSystem(
-			node.BuildSystemWithOption(
-				node.SystemActorConstructor(actors.GetConstructors()),
-			),
-		),
+		core.WithSystem(node.BuildSystemWithOption(actors.BuildActorFactory())),
 	)
 
-	_, err = nod.System().Register(context.TODO(), constant.ActorWebsoketAcceptor,
-		core.CreateActorWithID(service+"-"+nodeid+"-"+constant.ActorWebsoketAcceptor),
-		core.CreateActorWithOption("port", "8008"),
-	)
-	if err != nil {
-		panic(err)
-	}
-
-	loginActor, err := nod.System().Register(context.TODO(), constant.ActorLogin,
-		core.CreateActorWithID(service+"-"+nodeid+"-"+constant.ActorLogin),
-	)
-	if err != nil {
-		panic(err)
-	}
-
-	_, err = nod.System().Register(context.TODO(), constant.ActorGlobalChat,
-		core.CreateActorWithID(service+"-"+nodeid+"-"+constant.ActorGlobalChat),
-		core.CreateActorWithOption("channel", constant.ActorGlobalChat),
-	)
-	if err != nil {
-		panic(err)
-	}
-	_, err = nod.System().Register(context.TODO(), constant.ActorRouterChat,
-		core.CreateActorWithID(service+"-"+nodeid+"-"+constant.ActorRouterChat),
-	)
-	if err != nil {
-		panic(err)
-	}
+	nod.System().Loader().Builder(constant.ActorWebsoketAcceptor).WithID(service+"-"+nodeid+"-"+constant.ActorWebsoketAcceptor).WithOpt("port", "8008").RegisterLocally()
+	nod.System().Loader().Builder(constant.ActorLogin).WithID(service + "-" + nodeid + "-" + constant.ActorLogin).RegisterLocally()
+	nod.System().Loader().Builder(constant.ActorGlobalChat).WithID(service+"-"+nodeid+"-"+constant.ActorGlobalChat).WithOpt("channel", constant.ActorGlobalChat).RegisterLocally()
+	nod.System().Loader().Builder(constant.ActorRouterChat).WithID(service + "-" + nodeid + "-" + constant.ActorRouterChat).RegisterLocally()
 
 	err = nod.Init()
 	if err != nil {
 		panic(fmt.Errorf("node init err %v", err.Error()))
 	}
-
-	loginActor.RegisterEvent(events.EvLogin, events.MakeWSLogin)
 
 	nod.Update()
 

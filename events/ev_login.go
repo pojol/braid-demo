@@ -72,18 +72,11 @@ func MakeWSLogin(actorCtx context.Context) core.IChain {
 			}
 
 			// 注册到本节点
-			userActor, err := sys.Register(ctx,
-				constant.ActorUser,
-				core.CreateActorWithID(e.ID),
-				core.CreateActorWithOption("gateActor", mw.Req.Header.OrgActorID),
-			)
+			err = sys.Loader().Builder(constant.ActorUser).WithID(e.ID).WithOpt("gateActor", mw.Req.Header.OrgActorID).RegisterDynamically()
 			if err != nil {
 				fmt.Println("login ->", "regist actor err", err.Error())
 				return err
 			}
-
-			userActor.Init()
-			go userActor.Update()
 
 			resp.Uid = e.ID
 			resp.Token = e.User.Token

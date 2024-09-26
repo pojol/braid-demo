@@ -42,10 +42,10 @@ var bufferPool = sync.Pool{
 	},
 }
 
-func NewWSAcceptorActor(p *core.CreateActorParm) core.IActor {
+func NewWSAcceptorActor(p *core.ActorLoaderBuilder) core.IActor {
 
 	return &websocketAcceptorActor{
-		Runtime: &actor.Runtime{Id: p.ID, Ty: constant.ActorWebsoketAcceptor, Sys: p.Sys},
+		Runtime: &actor.Runtime{Id: p.ID, Ty: constant.ActorWebsoketAcceptor, Sys: p.ISystem},
 		echoptr: echo.New(),
 		Port:    p.Options["port"].(string),
 		state: &session.State{
@@ -67,6 +67,8 @@ func (a *websocketAcceptorActor) Init() {
 	a.echoptr.Use(middleware.CORS())
 
 	a.echoptr.GET("/ws", a.received)
+
+	a.RegisterEvent(events.EvLogin, events.MakeWSLogin)
 	a.RegisterEvent(events.EvWebsoketNotify, events.MakeWebsocketNotify)
 }
 

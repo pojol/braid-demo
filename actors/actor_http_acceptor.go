@@ -2,6 +2,7 @@ package actors
 
 import (
 	"braid-demo/constant"
+	"braid-demo/events"
 	"context"
 	"fmt"
 	"io"
@@ -23,9 +24,9 @@ type httpAcceptorActor struct {
 	Port    string
 }
 
-func NewHttpAcceptorActor(p *core.CreateActorParm) core.IActor {
+func NewHttpAcceptorActor(p *core.ActorLoaderBuilder) core.IActor {
 	return &httpAcceptorActor{
-		Runtime: &actor.Runtime{Id: p.ID, Ty: constant.ActorHttpAcceptor, Sys: p.Sys},
+		Runtime: &actor.Runtime{Id: p.ID, Ty: constant.ActorHttpAcceptor, Sys: p.ISystem},
 		echoptr: echo.New(),
 		Port:    p.Options["port"].(string),
 	}
@@ -33,6 +34,8 @@ func NewHttpAcceptorActor(p *core.CreateActorParm) core.IActor {
 
 func (a *httpAcceptorActor) Init() {
 	a.Runtime.Init()
+
+	a.RegisterEvent(events.EvHttpHello, events.HttpHello)
 
 	recovercfg := middleware.DefaultRecoverConfig
 	recovercfg.LogErrorFunc = func(c echo.Context, err error, stack []byte) error {

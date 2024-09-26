@@ -4,52 +4,46 @@ import (
 	"braid-demo/constant"
 
 	"github.com/pojol/braid/core"
-	"github.com/pojol/braid/core/cluster/node"
 )
 
-// ActorFactory is a factory for creating actors
-type ActorFactory struct {
-	constructors map[string]core.CreateFunc
+// MockActorFactory is a factory for creating actors
+type MockActorFactory struct {
+	constructors map[string]*core.ActorConstructor
 }
 
-var factory *ActorFactory
-
 // NewActorFactory create new actor factory
-func newActorFactory() {
-	factory = &ActorFactory{
-		constructors: make(map[string]core.CreateFunc),
+func BuildActorFactory() *MockActorFactory {
+	factory := &MockActorFactory{
+		constructors: make(map[string]*core.ActorConstructor),
 	}
+
+	factory.bind(constant.ActorHttpAcceptor, true, 800, 1, NewHttpAcceptorActor)
+	factory.bind(constant.ActorWebsoketAcceptor, true, 800, 1, NewWSAcceptorActor)
+
+	factory.bind(constant.ActorGlobalChat, false, 3000, 1, NewChatActor)
+	factory.bind(constant.ActorPrivateChat, false, 10, 1, NewChatActor)
+	factory.bind(constant.ActorRouterChat, true, 80, 1, NewRouterChatActor)
+
+	factory.bind(constant.ActorLogin, false, 800, 1, NewLoginActor)
+	factory.bind(constant.ActorUser, false, 80, 10000, NewUserActor)
+
+	return factory
 }
 
 // Bind associates an actor type with its constructor function
-func bind(actorType string, f core.CreateFunc) {
-	factory.constructors[actorType] = f
-}
-
-// GetConstructors returns all registered constructor functions
-func GetConstructors() []node.ActorConstructor {
-	constructors := make([]node.ActorConstructor, 0, len(factory.constructors))
-	for ty, cf := range factory.constructors {
-		constructors = append(constructors, node.ActorConstructor{
-			Type:        ty,
-			Constructor: cf,
-		})
+func (factory *MockActorFactory) bind(actorType string, unique bool, weight int, limit int, f core.CreateFunc) {
+	factory.constructors[actorType] = &core.ActorConstructor{
+		NodeUnique:          unique,
+		Weight:              weight,
+		Constructor:         f,
+		GlobalQuantityLimit: limit,
 	}
-	return constructors
 }
 
-func init() {
-	newActorFactory()
+func (factory *MockActorFactory) Get(actorType string) *core.ActorConstructor {
+	if _, ok := factory.constructors[actorType]; ok {
+		return factory.constructors[actorType]
+	}
 
-	bind(constant.ActorHttpAcceptor, NewHttpAcceptorActor)
-	bind(constant.ActorWebsoketAcceptor, NewWSAcceptorActor)
-	bind(constant.ActorLogin, NewLoginActor)
-
-	bind(constant.ActorGlobalChat, NewChatActor)
-	bind(constant.ActorGuildChat, NewChatActor)
-	bind(constant.ActorPrivateChat, NewChatActor)
-	bind(constant.ActorRouterChat, NewRouterChatActor)
-
-	bind(constant.ActorUser, NewUserActor)
-
+	return nil
 }

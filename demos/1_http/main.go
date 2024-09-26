@@ -3,8 +3,6 @@ package main
 import (
 	"braid-demo/actors"
 	"braid-demo/constant"
-	"braid-demo/events"
-	"context"
 	"fmt"
 
 	"github.com/pojol/braid/3rd/redis"
@@ -23,16 +21,11 @@ func main() {
 
 	nod := node.BuildProcessWithOption(
 		core.WithSystem(
-			node.BuildSystemWithOption(
-				node.SystemActorConstructor(actors.GetConstructors()),
-			),
+			node.BuildSystemWithOption(actors.BuildActorFactory()),
 		),
 	)
 
-	helloActor, err := nod.System().Register(context.TODO(), constant.ActorHttpAcceptor,
-		core.CreateActorWithID("1"),
-		core.CreateActorWithOption("port", "8008"),
-	)
+	_, err := nod.System().Loader().Builder(constant.ActorHttpAcceptor).WithID("1").WithOpt("port", "8008").RegisterLocally()
 	if err != nil {
 		panic(err)
 	}
@@ -41,8 +34,6 @@ func main() {
 	if err != nil {
 		panic(fmt.Errorf("node init err %v", err.Error()))
 	}
-
-	helloActor.RegisterEvent(events.EvHttpHello, events.HttpHello)
 
 	nod.Update()
 

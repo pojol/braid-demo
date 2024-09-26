@@ -7,7 +7,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.3
 	github.com/labstack/echo/v4 v4.12.0
-	github.com/pojol/braid v0.0.0-20240911150419-7b6d1d4ebba5
+	github.com/pojol/braid v0.0.0-20240926025358-149ecda51f9c
 	github.com/pojol/gobot v0.4.4
 	github.com/stretchr/testify v1.9.0
 	github.com/yuin/gopher-lua v1.1.1
@@ -112,6 +112,3 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.4.1 // indirect
 	sigs.k8s.io/yaml v1.4.0 // indirect
 )
-
-replace github.com/pojol/braid => /Users/pojol/github/braid
-replace github.com/pojol/gobot => /Users/pojol/github/gobot
