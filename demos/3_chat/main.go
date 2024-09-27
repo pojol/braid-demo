@@ -9,6 +9,7 @@ import (
 	"github.com/pojol/braid/3rd/redis"
 	"github.com/pojol/braid/core"
 	"github.com/pojol/braid/core/cluster/node"
+	"github.com/pojol/braid/def"
 	"github.com/pojol/braid/lib/log"
 )
 
@@ -28,17 +29,40 @@ func main() {
 	// mock redis
 	redis.BuildClientWithOption(redis.WithAddr("redis://127.0.0.1:6379/0"))
 
-	service := "barid"
-	nodeid := "xxx"
+	nodeid := "chat-1"
 
 	nod := node.BuildProcessWithOption(
-		core.WithSystem(node.BuildSystemWithOption(actors.BuildActorFactory())),
+		core.WithSystem(node.BuildSystemWithOption(nodeid, actors.BuildActorFactory())),
 	)
 
-	nod.System().Loader().Builder(constant.ActorWebsoketAcceptor).WithID(service+"-"+nodeid+"-"+constant.ActorWebsoketAcceptor).WithOpt("port", "8008").RegisterLocally()
-	nod.System().Loader().Builder(constant.ActorLogin).WithID(service + "-" + nodeid + "-" + constant.ActorLogin).RegisterLocally()
-	nod.System().Loader().Builder(constant.ActorGlobalChat).WithID(service+"-"+nodeid+"-"+constant.ActorGlobalChat).WithOpt("channel", constant.ActorGlobalChat).RegisterLocally()
-	nod.System().Loader().Builder(constant.ActorRouterChat).WithID(service + "-" + nodeid + "-" + constant.ActorRouterChat).RegisterLocally()
+	_, err = nod.System().Loader().Builder(constant.ActorWebsoketAcceptor).WithID("1").WithOpt("port", "8008").RegisterLocally()
+	if err != nil {
+		panic(err.Error())
+	}
+	_, err = nod.System().Loader().Builder(constant.ActorLogin).WithID(nodeid + "_login").RegisterLocally()
+	if err != nil {
+		panic(err.Error())
+	}
+	_, err = nod.System().Loader().Builder(def.ActorDynamicPicker).WithID(nodeid + "_picker").RegisterLocally()
+	if err != nil {
+		panic(err.Error())
+	}
+	_, err = nod.System().Loader().Builder(def.ActorDynamicRegister).WithID(nodeid + "_register").RegisterLocally()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	_, err = nod.System().Loader().Builder(constant.ActorGlobalChat).
+		WithID(nodeid+"_"+constant.ActorGlobalChat).
+		WithOpt("channel", constant.ActorGlobalChat).RegisterLocally()
+	if err != nil {
+		panic(err.Error())
+	}
+	_, err = nod.System().Loader().Builder(constant.ActorRouterChat).
+		WithID(nodeid + "_" + constant.ActorRouterChat).RegisterLocally()
+	if err != nil {
+		panic(err.Error())
+	}
 
 	err = nod.Init()
 	if err != nil {

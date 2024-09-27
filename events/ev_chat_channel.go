@@ -81,7 +81,7 @@ func MakeChatRecved(actorCtx context.Context) core.IChain {
 		Handler: func(ctx context.Context, mw *router.MsgWrapper) error {
 
 			req := unpackCfg.Msg.(*gameproto.ChatSendReq)
-			state := core.GetState(actorCtx).(*chat.State)
+			state := actorCtx.Value(ChatStateType{}).(*chat.State)
 			sys := core.GetSystem(actorCtx)
 
 			state.MsgHistory = append(state.MsgHistory, *req.Msg)

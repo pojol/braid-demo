@@ -3,7 +3,9 @@ package actors
 import (
 	"braid-demo/constant"
 
+	"github.com/pojol/braid/actors"
 	"github.com/pojol/braid/core"
+	"github.com/pojol/braid/def"
 )
 
 // MockActorFactory is a factory for creating actors
@@ -26,6 +28,9 @@ func BuildActorFactory() *MockActorFactory {
 
 	factory.bind(constant.ActorLogin, false, 800, 1, NewLoginActor)
 	factory.bind(constant.ActorUser, false, 80, 10000, NewUserActor)
+
+	factory.bind(def.ActorDynamicPicker, true, 80, 10, actors.NewDynamicPickerActor)
+	factory.bind(def.ActorDynamicRegister, true, 80, 0, actors.NewDynamicRegisterActor)
 
 	return factory
 }

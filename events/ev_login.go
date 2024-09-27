@@ -55,6 +55,8 @@ func MakeWSLogin(actorCtx context.Context) core.IChain {
 					ID:         e.ID,
 					CreateTime: time.Now().Unix(),
 				}
+				e.Bag = &user.EntityBagModule{ID: e.ID}
+				e.Airship = &user.EntityAirshipModule{ID: e.ID}
 
 				_, err = mgo.Collection(constant.MongoDatabase, constant.MongoCollection).InsertOne(ctx, e)
 				if err != nil {
@@ -71,7 +73,6 @@ func MakeWSLogin(actorCtx context.Context) core.IChain {
 				log.Info("user %v refresh token %v", e.ID, newToken)
 			}
 
-			// 注册到本节点
 			err = sys.Loader().Builder(constant.ActorUser).WithID(e.ID).WithOpt("gateActor", mw.Req.Header.OrgActorID).RegisterDynamically()
 			if err != nil {
 				fmt.Println("login ->", "regist actor err", err.Error())

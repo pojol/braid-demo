@@ -16,12 +16,14 @@ func main() {
 	log.SetSLog(slog)
 	defer log.Sync()
 
+	mocknodid := "http-1"
+
 	// mock redis
 	redis.BuildClientWithOption(redis.WithAddr("redis://127.0.0.1:6379/0"))
 
 	nod := node.BuildProcessWithOption(
 		core.WithSystem(
-			node.BuildSystemWithOption(actors.BuildActorFactory()),
+			node.BuildSystemWithOption(mocknodid, actors.BuildActorFactory()),
 		),
 	)
 

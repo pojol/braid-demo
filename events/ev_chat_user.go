@@ -10,11 +10,13 @@ import (
 	"github.com/pojol/braid/router"
 )
 
+type ChatStateType struct{}
+
 func MakeChatAddUser(actorCtx context.Context) core.IChain {
 	return &actor.DefaultChain{
 		Handler: func(ctx context.Context, mw *router.MsgWrapper) error {
 
-			state := core.GetState(actorCtx).(*chat.State)
+			state := actorCtx.Value(ChatStateType{}).(*chat.State)
 
 			userToken := mw.Req.Header.Token
 			userID := mw.Req.Header.Custom["actor"]
@@ -34,7 +36,7 @@ func MakeChatAddUser(actorCtx context.Context) core.IChain {
 func MakeChatRemoveUser(actorCtx context.Context) core.IChain {
 	return &actor.DefaultChain{
 		Handler: func(ctx context.Context, mw *router.MsgWrapper) error {
-			state := core.GetState(actorCtx).(*chat.State)
+			state := actorCtx.Value(ChatStateType{}).(*chat.State)
 
 			userID := mw.Req.Header.Custom["actor"]
 

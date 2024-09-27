@@ -40,12 +40,13 @@ func (a *mockUserActor) Init() {
 	a.RegisterEvent(events.EvUserChatAddChannel, events.MakeChatAddChannel)
 	a.RegisterEvent(events.EvUserChatRemoveChannel, events.MakeChatRemoveChannel)
 
-	a.Sys.Loader().Builder(constant.ActorPrivateChat).
+	// 不能在一个动态构建里面创建一个动态构建
+	go a.Sys.Loader().Builder(constant.ActorPrivateChat).
 		WithID("chat."+constant.ChatPrivateChannel+"."+a.Id).
 		WithOpt("channel", constant.ChatPrivateChannel).
 		WithOpt("actorID", a.Id).RegisterDynamically()
 
-	a.Sys.Call(context.TODO(),
+	err = a.Sys.Call(context.TODO(),
 		router.Target{ID: def.SymbolLocalFirst, Ty: constant.ActorGlobalChat, Ev: events.EvChatChannelAddUser},
 		router.NewMsgWrap().WithReqHeader(&router.Header{
 			Token: a.entity.User.Token,
@@ -55,6 +56,9 @@ func (a *mockUserActor) Init() {
 			},
 		}).Build(),
 	)
+	if err != nil {
+		log.Warn("system call %v err %v", events.EvChatChannelAddUser, err.Error())
+	}
 
 	// one minute try sync to cache
 	a.RegisterTimer(0, 1000*60, func() error {

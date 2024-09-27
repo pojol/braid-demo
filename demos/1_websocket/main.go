@@ -9,6 +9,7 @@ import (
 	"github.com/pojol/braid/3rd/redis"
 	"github.com/pojol/braid/core"
 	"github.com/pojol/braid/core/cluster/node"
+	"github.com/pojol/braid/def"
 	"github.com/pojol/braid/lib/log"
 )
 
@@ -17,7 +18,6 @@ func main() {
 	log.SetSLog(slog)
 	defer log.Sync()
 
-	mockservice := "service"
 	mocknodid := "ws1-1"
 
 	err := mgo.Build(mgo.AppendConn(mgo.ConnInfo{
@@ -32,19 +32,27 @@ func main() {
 	redis.BuildClientWithOption(redis.WithAddr("redis://127.0.0.1:6379/0"))
 
 	nod := node.BuildProcessWithOption(
+		core.WithNodeID(mocknodid),
 		core.WithSystem(
-			node.BuildSystemWithOption(actors.BuildActorFactory()),
+			node.BuildSystemWithOption(mocknodid, actors.BuildActorFactory()),
 		),
 	)
 
 	_, err = nod.System().Loader().Builder(constant.ActorWebsoketAcceptor).WithID("1").WithOpt("port", "8008").RegisterLocally()
 	if err != nil {
-		panic(err)
+		panic(err.Error())
 	}
-
-	_, err = nod.System().Loader().Builder(constant.ActorLogin).WithID(mockservice + "_" + mocknodid + "login-1").RegisterLocally()
+	_, err = nod.System().Loader().Builder(constant.ActorLogin).WithID(mocknodid + "_login").RegisterLocally()
 	if err != nil {
-		panic(err)
+		panic(err.Error())
+	}
+	_, err = nod.System().Loader().Builder(def.ActorDynamicPicker).WithID(mocknodid + "_picker").RegisterLocally()
+	if err != nil {
+		panic(err.Error())
+	}
+	_, err = nod.System().Loader().Builder(def.ActorDynamicRegister).WithID(mocknodid + "_register").RegisterLocally()
+	if err != nil {
+		panic(err.Error())
 	}
 
 	err = nod.Init()

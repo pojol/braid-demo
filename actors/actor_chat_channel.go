@@ -27,6 +27,7 @@ func NewChatActor(p *core.ActorLoaderBuilder) core.IActor {
 
 func (a *chatChannelActor) Init() {
 	a.Runtime.Init()
+	a.SetContext(events.ChatStateType{}, a.state)
 
 	a.RegisterEvent(events.EvChatChannelReceived, events.MakeChatRecved)
 	a.RegisterEvent(events.EvChatChannelMessages, events.MakeChatMessages)
