@@ -18,8 +18,8 @@ func HttpHello(actorCtx context.Context) core.IChain {
 	unpackCfg := &middleware.MessageUnpackCfg[*gameproto.HelloReq]{}
 
 	return &actor.DefaultChain{
-		Before: []actor.MiddlewareHandler{middleware.MessageUnpack(unpackCfg)},
-		Handler: func(ctx context.Context, mw *router.MsgWrapper) error {
+		Before: []actor.EventHandler{middleware.MessageUnpack(unpackCfg)},
+		Handler: func(mw *router.MsgWrapper) error {
 
 			req := unpackCfg.Msg.(*gameproto.HelloReq)
 			fmt.Println("req name:", req.Name)

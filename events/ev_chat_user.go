@@ -14,7 +14,7 @@ type ChatStateType struct{}
 
 func MakeChatAddUser(actorCtx context.Context) core.IChain {
 	return &actor.DefaultChain{
-		Handler: func(ctx context.Context, mw *router.MsgWrapper) error {
+		Handler: func(mw *router.MsgWrapper) error {
 
 			state := actorCtx.Value(ChatStateType{}).(*chat.State)
 
@@ -35,7 +35,7 @@ func MakeChatAddUser(actorCtx context.Context) core.IChain {
 
 func MakeChatRemoveUser(actorCtx context.Context) core.IChain {
 	return &actor.DefaultChain{
-		Handler: func(ctx context.Context, mw *router.MsgWrapper) error {
+		Handler: func(mw *router.MsgWrapper) error {
 			state := actorCtx.Value(ChatStateType{}).(*chat.State)
 
 			userID := mw.Req.Header.Custom["actor"]

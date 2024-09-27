@@ -271,10 +271,6 @@ github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINE
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 h1:Jamvg5psRIccs7FGNTlIRMkT8wgtp5eCXdBlqhYGL6U=
 github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
-github.com/pojol/braid v0.0.0-20240926025358-149ecda51f9c h1:hF4uDyNEbk5GsxRi+ROURiayufiEx5jJffGEbCm1+KQ=
-github.com/pojol/braid v0.0.0-20240926025358-149ecda51f9c/go.mod h1:AfDfGfCKY023tlMDwRktz3bwEkiQ3pXXCNX3jzVNfUY=
-github.com/pojol/braid v0.0.0-20240927014850-5ce67de4eef5 h1:57F/Hlu1vTgBbPHkiurU0s+4j/9iM5XvmdZZ7CzNKPg=
-github.com/pojol/braid v0.0.0-20240927014850-5ce67de4eef5/go.mod h1:AfDfGfCKY023tlMDwRktz3bwEkiQ3pXXCNX3jzVNfUY=
 github.com/pojol/braid-go v1.4.0 h1:8EPmqJmsGgmMxv3Ly83GgbltD3G4QxNXWoS7htCnZ/E=
 github.com/pojol/braid-go v1.4.0/go.mod h1:h8bUwhzlfumMj5CuyTa9b0ymcAGYwMAe2l5ixUnL5ZQ=
 github.com/pojol/gobot v0.4.4 h1:yztdBtZSQ1Z03uuzFnrOD1ouaIWMndb9aguz90mpDIU=

@@ -22,11 +22,12 @@ func MakeChatSendCmd(actorCtx context.Context) core.IChain {
 	unpackCfg := &middleware.MessageUnpackCfg[*gameproto.ChatSendReq]{}
 
 	return &actor.DefaultChain{
-		Before: []actor.MiddlewareHandler{middleware.MessageUnpack(unpackCfg)},
-		Handler: func(ctx context.Context, mw *router.MsgWrapper) error {
+		Before: []actor.EventHandler{middleware.MessageUnpack(unpackCfg)},
+		Handler: func(mw *router.MsgWrapper) error {
 
 			req := unpackCfg.Msg.(*gameproto.ChatSendReq)
 			sys := core.GetSystem(actorCtx)
+			actor := core.GetActor(actorCtx)
 
 			// check if the channel is valid
 			// ...
@@ -50,7 +51,7 @@ func MakeChatSendCmd(actorCtx context.Context) core.IChain {
 				return nil
 			}
 
-			err := sys.Call(ctx, router.Target{ID: targetActorID, Ty: targetActorTy, Ev: EvChatChannelReceived}, mw)
+			err := actor.Call(router.Target{ID: targetActorID, Ty: targetActorTy, Ev: EvChatChannelReceived}, mw)
 			if err != nil {
 				fmt.Println("call", targetActorTy, err.Error())
 			}
@@ -58,7 +59,7 @@ func MakeChatSendCmd(actorCtx context.Context) core.IChain {
 			// If the target actor is a valid ID
 			// Send the message to the target actor's message queue, waiting for consumption after login
 			if err == fmt.Errorf("unknown actor") /* && actor is vaild */ {
-				sys.Pub(ctx, EvChatMessageStore, &router.Message{
+				sys.Pub(EvChatMessageStore, &router.Message{
 					Header: &router.Header{
 						ID:    uuid.NewString(),
 						Event: targetActorID,
@@ -77,8 +78,8 @@ func MakeChatRecved(actorCtx context.Context) core.IChain {
 	unpackCfg := &middleware.MessageUnpackCfg[*gameproto.ChatSendReq]{}
 
 	return &actor.DefaultChain{
-		Before: []actor.MiddlewareHandler{middleware.MessageUnpack(unpackCfg)},
-		Handler: func(ctx context.Context, mw *router.MsgWrapper) error {
+		Before: []actor.EventHandler{middleware.MessageUnpack(unpackCfg)},
+		Handler: func(mw *router.MsgWrapper) error {
 
 			req := unpackCfg.Msg.(*gameproto.ChatSendReq)
 			state := actorCtx.Value(ChatStateType{}).(*chat.State)
@@ -95,8 +96,7 @@ func MakeChatRecved(actorCtx context.Context) core.IChain {
 			mw.Res.Body, _ = proto.Marshal(&notify)
 
 			if req.Msg.Channel == constant.ChatPrivateChannel {
-				sys.Send(ctx,
-					router.Target{ID: def.SymbolLocalFirst, Ty: constant.ActorWebsoketAcceptor, Ev: EvWebsoketNotify},
+				sys.Send(router.Target{ID: def.SymbolLocalFirst, Ty: constant.ActorWebsoketAcceptor, Ev: EvWebsoketNotify},
 					mw,
 				)
 			} else {
@@ -106,12 +106,11 @@ func MakeChatRecved(actorCtx context.Context) core.IChain {
 					mw.Res.Header.Token = v.ActorToken
 					mw.Res.Header.Event = EvChatMessageNty
 
-					sys.Send(ctx,
-						router.Target{
-							ID: v.ActorGate,
-							Ty: constant.ActorWebsoketAcceptor,
-							Ev: EvWebsoketNotify,
-						},
+					sys.Send(router.Target{
+						ID: v.ActorGate,
+						Ty: constant.ActorWebsoketAcceptor,
+						Ev: EvWebsoketNotify,
+					},
 						mw,
 					)
 				}
@@ -125,7 +124,7 @@ func MakeChatRecved(actorCtx context.Context) core.IChain {
 
 func MakeChatStoreMessage(actorCtx context.Context) core.IChain {
 	return &actor.DefaultChain{
-		Handler: func(ctx context.Context, mw *router.MsgWrapper) error {
+		Handler: func(mw *router.MsgWrapper) error {
 
 			return nil
 		},

@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"context"
 	"fmt"
 	"reflect"
 	"strings"
@@ -17,8 +16,8 @@ type MessageUnpackCfg[T any] struct {
 	Msg   interface{}
 }
 
-func MessageUnpack[T any](cfg *MessageUnpackCfg[T]) actor.MiddlewareHandler {
-	return func(ctx context.Context, msg *router.MsgWrapper) error {
+func MessageUnpack[T any](cfg *MessageUnpackCfg[T]) actor.EventHandler {
+	return func(msg *router.MsgWrapper) error {
 		var msgInstance proto.Message
 		msgType := reflect.TypeOf(cfg.MsgTy)
 

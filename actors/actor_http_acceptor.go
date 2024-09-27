@@ -32,8 +32,8 @@ func NewHttpAcceptorActor(p *core.ActorLoaderBuilder) core.IActor {
 	}
 }
 
-func (a *httpAcceptorActor) Init() {
-	a.Runtime.Init()
+func (a *httpAcceptorActor) Init(ctx context.Context) {
+	a.Runtime.Init(ctx)
 
 	a.RegisterEvent(events.EvHttpHello, events.HttpHello)
 
@@ -52,10 +52,9 @@ func (a *httpAcceptorActor) Init() {
 			return c.Blob(http.StatusBadRequest, echo.MIMEApplicationJSON, nil)
 		}
 
-		msg := router.NewMsgWrap().WithReqBody(bts).Build()
+		msg := router.NewMsgWrap(context.TODO()).WithReqBody(bts).Build()
 
-		err = a.Call(c.Request().Context(),
-			router.Target{ID: a.Id, Ty: a.Ty, Ev: strings.TrimPrefix(c.Request().URL.Path, "/")},
+		err = a.Call(router.Target{ID: a.Id, Ty: a.Ty, Ev: strings.TrimPrefix(c.Request().URL.Path, "/")},
 			msg,
 		)
 		if err != nil {

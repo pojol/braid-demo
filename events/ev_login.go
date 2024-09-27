@@ -26,8 +26,8 @@ func MakeWSLogin(actorCtx context.Context) core.IChain {
 	unpackCfg := &middleware.MessageUnpackCfg[*gameproto.LoginReq]{}
 
 	return &actor.DefaultChain{
-		Before: []actor.MiddlewareHandler{middleware.MessageUnpack(unpackCfg)},
-		Handler: func(ctx context.Context, mw *router.MsgWrapper) error {
+		Before: []actor.EventHandler{middleware.MessageUnpack(unpackCfg)},
+		Handler: func(mw *router.MsgWrapper) error {
 			req := unpackCfg.Msg.(*gameproto.LoginReq)
 			resp := &gameproto.LoginResp{}
 			sys := core.GetSystem(actorCtx)
@@ -38,7 +38,7 @@ func MakeWSLogin(actorCtx context.Context) core.IChain {
 			}
 			create := false
 
-			err := mgo.Collection(constant.MongoDatabase, constant.MongoCollection).FindOne(ctx, bson.M{"openid": req.Uid}).Decode(e)
+			err := mgo.Collection(constant.MongoDatabase, constant.MongoCollection).FindOne(mw.Ctx, bson.M{"openid": req.Uid}).Decode(e)
 			if err != nil {
 				if err == mongo.ErrNoDocuments {
 					create = true
@@ -58,7 +58,7 @@ func MakeWSLogin(actorCtx context.Context) core.IChain {
 				e.Bag = &user.EntityBagModule{ID: e.ID}
 				e.Airship = &user.EntityAirshipModule{ID: e.ID}
 
-				_, err = mgo.Collection(constant.MongoDatabase, constant.MongoCollection).InsertOne(ctx, e)
+				_, err = mgo.Collection(constant.MongoDatabase, constant.MongoCollection).InsertOne(mw.Ctx, e)
 				if err != nil {
 					return errcode.ErrMongoCmd(err)
 				}
@@ -73,7 +73,10 @@ func MakeWSLogin(actorCtx context.Context) core.IChain {
 				log.Info("user %v refresh token %v", e.ID, newToken)
 			}
 
-			err = sys.Loader().Builder(constant.ActorUser).WithID(e.ID).WithOpt("gateActor", mw.Req.Header.OrgActorID).RegisterDynamically()
+			mw.Req.Header.PrevActorType = constant.ActorLogin
+			err = sys.Loader().Builder(constant.ActorUser).
+				WithID(e.ID).
+				WithOpt("gateActor", mw.Req.Header.OrgActorID).RegisterDynamically()
 			if err != nil {
 				fmt.Println("login ->", "regist actor err", err.Error())
 				return err

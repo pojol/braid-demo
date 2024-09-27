@@ -3,6 +3,7 @@ package actors
 import (
 	"braid-demo/events"
 	"braid-demo/models/chat"
+	"context"
 	"time"
 
 	"github.com/pojol/braid/core"
@@ -25,8 +26,8 @@ func NewChatActor(p *core.ActorLoaderBuilder) core.IActor {
 	}
 }
 
-func (a *chatChannelActor) Init() {
-	a.Runtime.Init()
+func (a *chatChannelActor) Init(ctx context.Context) {
+	a.Runtime.Init(ctx)
 	a.SetContext(events.ChatStateType{}, a.state)
 
 	a.RegisterEvent(events.EvChatChannelReceived, events.MakeChatRecved)

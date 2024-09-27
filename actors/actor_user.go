@@ -28,8 +28,8 @@ func NewUserActor(p *core.ActorLoaderBuilder) core.IActor {
 	}
 }
 
-func (a *mockUserActor) Init() {
-	a.Runtime.Init()
+func (a *mockUserActor) Init(ctx context.Context) {
+	a.Runtime.Init(ctx)
 	err := a.entity.Load(context.TODO())
 	if err != nil {
 		panic(fmt.Errorf("load user actor err %v", err.Error()))
@@ -41,14 +41,13 @@ func (a *mockUserActor) Init() {
 	a.RegisterEvent(events.EvUserChatRemoveChannel, events.MakeChatRemoveChannel)
 
 	// 不能在一个动态构建里面创建一个动态构建
-	go a.Sys.Loader().Builder(constant.ActorPrivateChat).
+	a.Sys.Loader().Builder(constant.ActorPrivateChat).
 		WithID("chat."+constant.ChatPrivateChannel+"."+a.Id).
 		WithOpt("channel", constant.ChatPrivateChannel).
 		WithOpt("actorID", a.Id).RegisterDynamically()
 
-	err = a.Sys.Call(context.TODO(),
-		router.Target{ID: def.SymbolLocalFirst, Ty: constant.ActorGlobalChat, Ev: events.EvChatChannelAddUser},
-		router.NewMsgWrap().WithReqHeader(&router.Header{
+	err = a.Call(router.Target{ID: def.SymbolLocalFirst, Ty: constant.ActorGlobalChat, Ev: events.EvChatChannelAddUser},
+		router.NewMsgWrap(context.TODO()).WithReqHeader(&router.Header{
 			Token: a.entity.User.Token,
 			Custom: map[string]string{
 				"actor":     a.Id,
@@ -72,9 +71,8 @@ func (a *mockUserActor) Init() {
 
 func (a *mockUserActor) Exit() {
 
-	a.Sys.Call(context.TODO(),
-		router.Target{ID: def.SymbolLocalFirst, Ty: constant.ActorGlobalChat, Ev: events.EvChatChannelRmvUser},
-		router.NewMsgWrap().WithReqHeader(&router.Header{
+	a.Call(router.Target{ID: def.SymbolLocalFirst, Ty: constant.ActorGlobalChat, Ev: events.EvChatChannelRmvUser},
+		router.NewMsgWrap(context.TODO()).WithReqHeader(&router.Header{
 			Token: a.entity.User.Token,
 			Custom: map[string]string{
 				"actor": a.Id,

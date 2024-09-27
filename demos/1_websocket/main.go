@@ -11,6 +11,8 @@ import (
 	"github.com/pojol/braid/core/cluster/node"
 	"github.com/pojol/braid/def"
 	"github.com/pojol/braid/lib/log"
+	"github.com/pojol/braid/lib/span"
+	"github.com/pojol/braid/lib/tracer"
 )
 
 func main() {
@@ -31,10 +33,25 @@ func main() {
 	// mock redis
 	redis.BuildClientWithOption(redis.WithAddr("redis://127.0.0.1:6379/0"))
 
+	trc := tracer.BuildWithOption(
+		tracer.WithServiceName("braid-demo"),
+		tracer.WithProbabilistic(1),
+		tracer.WithHTTP("http://127.0.0.1:14268/api/traces"),
+		tracer.WithSpanFactory(
+			tracer.TracerFactory{
+				Name:    span.SystemCall,
+				Factory: span.CreateCallSpan(),
+			},
+		),
+	)
+
 	nod := node.BuildProcessWithOption(
 		core.WithNodeID(mocknodid),
 		core.WithSystem(
-			node.BuildSystemWithOption(mocknodid, actors.BuildActorFactory()),
+			node.BuildSystemWithOption(mocknodid,
+				actors.BuildActorFactory(),
+				node.SystemWithTracer(trc),
+			),
 		),
 	)
 

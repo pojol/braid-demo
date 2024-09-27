@@ -44,9 +44,12 @@ var bufferPool = sync.Pool{
 
 func NewWSAcceptorActor(p *core.ActorLoaderBuilder) core.IActor {
 
+	echoptr := echo.New()
+	echoptr.HideBanner = true
+
 	return &websocketAcceptorActor{
 		Runtime: &actor.Runtime{Id: p.ID, Ty: constant.ActorWebsoketAcceptor, Sys: p.ISystem},
-		echoptr: echo.New(),
+		echoptr: echoptr,
 		Port:    p.Options["port"].(string),
 		state: &session.State{
 			SessionMap: make(map[string]*websocket.Conn),
@@ -54,8 +57,8 @@ func NewWSAcceptorActor(p *core.ActorLoaderBuilder) core.IActor {
 	}
 }
 
-func (a *websocketAcceptorActor) Init() {
-	a.Runtime.Init()
+func (a *websocketAcceptorActor) Init(ctx context.Context) {
+	a.Runtime.Init(ctx)
 	a.SetContext(core.StateKey{}, a.state)
 
 	recovercfg := middleware.DefaultRecoverConfig
@@ -141,15 +144,16 @@ func (a *websocketAcceptorActor) received(c echo.Context) error {
 			bh.Token = header.Token
 		}
 
-		sendmsg := router.NewMsgWrap().WithReqHeader(bh).WithReqBody(msg[2+headerlen:]).Build()
+		sendmsg := router.NewMsgWrap(ctx).WithReqHeader(bh).WithReqBody(msg[2+headerlen:]).Build()
 
 		// Perform the system call with the timeout context
-		err = a.Call(ctx, router.Target{
+		err = a.Call(router.Target{
 			ID: actorid,
 			Ty: actorty,
 			Ev: header.Event,
 		}, sendmsg)
 		if err != nil {
+
 			// Handle the error, such as logging or returning a response
 			log.Warn("system call actor:%v ty:%v event:%v err %v", actorid, actorty, header.Event, err)
 			continue

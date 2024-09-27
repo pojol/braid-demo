@@ -17,8 +17,8 @@ func MakeUserUseItem(actorCtx context.Context) core.IChain {
 	unpackCfg := &middleware.MessageUnpackCfg[*gameproto.CrudUseItemReq]{}
 
 	return &actor.DefaultChain{
-		Before: []actor.MiddlewareHandler{middleware.MessageUnpack(unpackCfg)},
-		Handler: func(ctx context.Context, mw *router.MsgWrapper) error {
+		Before: []actor.EventHandler{middleware.MessageUnpack(unpackCfg)},
+		Handler: func(mw *router.MsgWrapper) error {
 
 			req := unpackCfg.Msg.(*gameproto.CrudUseItemReq)
 			entity := core.GetState(actorCtx).(*user.EntityWrapper)

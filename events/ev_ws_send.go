@@ -26,7 +26,7 @@ func MakeWebsocketNotify(actorCtx context.Context) core.IChain {
 
 	return &actor.DefaultChain{
 
-		Handler: func(ctx context.Context, mw *router.MsgWrapper) error {
+		Handler: func(mw *router.MsgWrapper) error {
 			state := core.GetState(actorCtx).(*session.State)
 			conn, ok := state.GetSession(mw.Res.Header.Token)
 			if !ok {

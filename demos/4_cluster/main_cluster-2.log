@@ -1,0 +1,18 @@
+{"Level":"INFO","Time":"2024-09-27T10:26:23.226+0800","Msg":"[braid.system] node cluster-2 register websocketAcceptorActor succ, cur weight 0","ServerTag":"cluster-2"}
+{"Level":"INFO","Time":"2024-09-27T10:26:23.232+0800","Msg":"[braid.system] node cluster-2 register loginActor succ, cur weight 0","ServerTag":"cluster-2"}
+{"Level":"INFO","Time":"2024-09-27T10:26:23.234+0800","Msg":"[braid.system] node cluster-2 register braid.actor_dynamic_picker succ, cur weight 0","ServerTag":"cluster-2"}
+{"Level":"INFO","Time":"2024-09-27T10:26:23.237+0800","Msg":"[braid.system] node cluster-2 register braid.actor_dynamic_register succ, cur weight 0","ServerTag":"cluster-2"}
+{"Level":"INFO","Time":"2024-09-27T10:26:23.239+0800","Msg":"[braid.system] node cluster-2 register globalChatActor succ, cur weight 0","ServerTag":"cluster-2"}
+{"Level":"INFO","Time":"2024-09-27T10:26:23.241+0800","Msg":"[braid.system] node cluster-2 register routerChatActor succ, cur weight 0","ServerTag":"cluster-2"}
+{"Level":"INFO","Time":"2024-09-27T10:26:23.242+0800","Msg":"[braid.pubsub ]Topic chatMessageStore new channel cluster-2_globalChatActor","ServerTag":"cluster-2"}
+start websocket server succ
+
+   ____    __
+  / __/___/ /  ___
+ / _// __/ _ \/ _ \
+/___/\__/_//_/\___/ v4.12.0
+High performance, minimalist Go web framework
+https://echo.labstack.com
+____________________________________O/_______
+                                    O\
+⇨ http server started on [::]:8002
