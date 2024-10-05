@@ -35,7 +35,7 @@ func MessageUnpack[T any](cfg *MessageUnpackCfg[T]) actor.EventHandler {
 		}
 
 		// 打印消息类型和字段信息
-		log.Info("[req event] actor_id : %s actor_ty : %s event : %s: params : %s",
+		log.InfoF("[req event] actor_id : %s actor_ty : %s event : %s: params : %s",
 			msg.Req.Header.TargetActorID,
 			msg.Req.Header.TargetActorType,
 			reflect.TypeOf(msgInstance).Elem().Name(), printMessageFields(msgInstance))

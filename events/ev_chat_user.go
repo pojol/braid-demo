@@ -3,7 +3,6 @@ package events
 import (
 	"braid-demo/models/chat"
 	"braid-demo/models/comm"
-	"context"
 
 	"github.com/pojol/braid/core"
 	"github.com/pojol/braid/core/actor"
@@ -12,11 +11,11 @@ import (
 
 type ChatStateType struct{}
 
-func MakeChatAddUser(actorCtx context.Context) core.IChain {
+func MakeChatAddUser(ctx core.ActorContext) core.IChain {
 	return &actor.DefaultChain{
 		Handler: func(mw *router.MsgWrapper) error {
 
-			state := actorCtx.Value(ChatStateType{}).(*chat.State)
+			state := ctx.GetValue(ChatStateType{}).(*chat.State)
 
 			userToken := mw.Req.Header.Token
 			userID := mw.Req.Header.Custom["actor"]
@@ -33,11 +32,10 @@ func MakeChatAddUser(actorCtx context.Context) core.IChain {
 	}
 }
 
-func MakeChatRemoveUser(actorCtx context.Context) core.IChain {
+func MakeChatRemoveUser(ctx core.ActorContext) core.IChain {
 	return &actor.DefaultChain{
 		Handler: func(mw *router.MsgWrapper) error {
-			state := actorCtx.Value(ChatStateType{}).(*chat.State)
-
+			state := ctx.GetValue(ChatStateType{}).(*chat.State)
 			userID := mw.Req.Header.Custom["actor"]
 
 			if userID != "" {

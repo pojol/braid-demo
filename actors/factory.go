@@ -26,7 +26,7 @@ func BuildActorFactory() *MockActorFactory {
 	factory.bind(constant.ActorPrivateChat, false, 10, 1, NewChatActor)
 	factory.bind(constant.ActorRouterChat, true, 80, 1, NewRouterChatActor)
 
-	factory.bind(constant.ActorLogin, false, 800, 1, NewLoginActor)
+	factory.bind(constant.ActorLogin, false, 800, 2, NewLoginActor)
 	factory.bind(constant.ActorUser, false, 80, 10000, NewUserActor)
 
 	factory.bind(def.ActorDynamicPicker, true, 80, 10, actors.NewDynamicPickerActor)

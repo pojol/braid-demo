@@ -13,9 +13,9 @@ type chatRouterActor struct {
 	*actor.Runtime
 }
 
-func NewRouterChatActor(p *core.ActorLoaderBuilder) core.IActor {
+func NewRouterChatActor(p core.IActorBuilder) core.IActor {
 	return &chatRouterActor{
-		Runtime: &actor.Runtime{Id: p.ID, Ty: constant.ActorRouterChat, Sys: p.ISystem},
+		Runtime: &actor.Runtime{Id: p.GetID(), Ty: constant.ActorRouterChat, Sys: p.GetSystem()},
 	}
 }
 

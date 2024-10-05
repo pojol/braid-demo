@@ -42,15 +42,15 @@ var bufferPool = sync.Pool{
 	},
 }
 
-func NewWSAcceptorActor(p *core.ActorLoaderBuilder) core.IActor {
+func NewWSAcceptorActor(p core.IActorBuilder) core.IActor {
 
 	echoptr := echo.New()
 	echoptr.HideBanner = true
 
 	return &websocketAcceptorActor{
-		Runtime: &actor.Runtime{Id: p.ID, Ty: constant.ActorWebsoketAcceptor, Sys: p.ISystem},
+		Runtime: &actor.Runtime{Id: p.GetID(), Ty: constant.ActorWebsoketAcceptor, Sys: p.GetSystem()},
 		echoptr: echoptr,
-		Port:    p.Options["port"].(string),
+		Port:    p.GetOpt("port").(string),
 		state: &session.State{
 			SessionMap: make(map[string]*websocket.Conn),
 		},
@@ -59,11 +59,12 @@ func NewWSAcceptorActor(p *core.ActorLoaderBuilder) core.IActor {
 
 func (a *websocketAcceptorActor) Init(ctx context.Context) {
 	a.Runtime.Init(ctx)
-	a.SetContext(core.StateKey{}, a.state)
+
+	a.Context().WithValue(events.SessionState{}, a.state)
 
 	recovercfg := middleware.DefaultRecoverConfig
 	recovercfg.LogErrorFunc = func(c echo.Context, err error, stack []byte) error {
-		log.Error("recover err %v stack %v", err.Error(), string(stack))
+		log.ErrorF("recover err %v stack %v", err.Error(), string(stack))
 		return nil
 	}
 	a.echoptr.Use(middleware.RecoverWithConfig(recovercfg))
@@ -155,7 +156,7 @@ func (a *websocketAcceptorActor) received(c echo.Context) error {
 		if err != nil {
 
 			// Handle the error, such as logging or returning a response
-			log.Warn("system call actor:%v ty:%v event:%v err %v", actorid, actorty, header.Event, err)
+			log.WarnF("system call actor:%v ty:%v event:%v err %v", actorid, actorty, header.Event, err)
 			continue
 		}
 
@@ -197,7 +198,7 @@ func (a *websocketAcceptorActor) Update() {
 
 	err := a.echoptr.Start(":" + a.Port)
 	if err != nil {
-		panic(fmt.Errorf("echo start err: %w", err))
+		log.InfoF("echo server exit %v", err.Error())
 	}
 }
 
@@ -205,7 +206,7 @@ func (a *websocketAcceptorActor) Exit() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	if err := a.echoptr.Shutdown(ctx); err != nil {
-		log.Error("failed to shutdown server: %v", err)
+		log.ErrorF("failed to shutdown server: %v", err)
 	}
 
 	a.Runtime.Exit()

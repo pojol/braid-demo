@@ -13,9 +13,9 @@ type loginActor struct {
 	*actor.Runtime
 }
 
-func NewLoginActor(p *core.ActorLoaderBuilder) core.IActor {
+func NewLoginActor(p core.IActorBuilder) core.IActor {
 	return &loginActor{
-		Runtime: &actor.Runtime{Id: p.ID, Ty: constant.ActorLogin, Sys: p.ISystem},
+		Runtime: &actor.Runtime{Id: p.GetID(), Ty: constant.ActorLogin, Sys: p.GetSystem()},
 	}
 }
 

@@ -3,7 +3,6 @@ package events
 import (
 	"braid-demo/middleware"
 	"braid-demo/models/gameproto"
-	"context"
 	"fmt"
 	"math/rand"
 
@@ -13,7 +12,7 @@ import (
 	"github.com/pojol/braid/router"
 )
 
-func HttpHello(actorCtx context.Context) core.IChain {
+func HttpHello(ctx core.ActorContext) core.IChain {
 
 	unpackCfg := &middleware.MessageUnpackCfg[*gameproto.HelloReq]{}
 

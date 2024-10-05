@@ -6,7 +6,6 @@ import (
 	"braid-demo/middleware"
 	"braid-demo/models/gameproto"
 	"braid-demo/models/user"
-	"context"
 	"fmt"
 	"time"
 
@@ -22,7 +21,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func MakeWSLogin(actorCtx context.Context) core.IChain {
+func MakeWSLogin(ctx core.ActorContext) core.IChain {
 	unpackCfg := &middleware.MessageUnpackCfg[*gameproto.LoginReq]{}
 
 	return &actor.DefaultChain{
@@ -30,7 +29,6 @@ func MakeWSLogin(actorCtx context.Context) core.IChain {
 		Handler: func(mw *router.MsgWrapper) error {
 			req := unpackCfg.Msg.(*gameproto.LoginReq)
 			resp := &gameproto.LoginResp{}
-			sys := core.GetSystem(actorCtx)
 
 			// 检查 db 是否存在， 创建 / 登录
 			e := &user.EntityWrapper{
@@ -70,13 +68,12 @@ func MakeWSLogin(actorCtx context.Context) core.IChain {
 				}
 
 				e.User.Token = newToken
-				log.Info("user %v refresh token %v", e.ID, newToken)
+				log.InfoF("user %v refresh token %v", e.ID, newToken)
 			}
 
 			mw.Req.Header.PrevActorType = constant.ActorLogin
-			err = sys.Loader().Builder(constant.ActorUser).
-				WithID(e.ID).
-				WithOpt("gateActor", mw.Req.Header.OrgActorID).RegisterDynamically()
+			_, err = ctx.Loader(constant.ActorUser).WithID(e.ID).
+				WithOpt("gateActor", mw.Req.Header.OrgActorID).WithPicker().Build()
 			if err != nil {
 				fmt.Println("login ->", "regist actor err", err.Error())
 				return err

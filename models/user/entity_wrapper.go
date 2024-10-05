@@ -67,30 +67,13 @@ func (e *EntityWrapper) Load(ctx context.Context) error {
 		return fmt.Errorf("load entity %v err %v", e.ID, err.Error())
 	}
 
-	e.setModulesAndIDs()
 	e.isCache = true
 
 	return nil
 }
 
-func (e *EntityWrapper) setModulesAndIDs() {
-	v := reflect.ValueOf(e).Elem()
-	for i := 0; i < v.NumField(); i++ {
-		field := v.Field(i)
-		if field.Kind() == reflect.Ptr && field.Type().Elem().Kind() == reflect.Struct {
-			moduleType := field.Type()
-			if module := e.cs.GetModule(moduleType); module != nil {
-				field.Set(reflect.ValueOf(module))
-				if idField := reflect.ValueOf(module).Elem().FieldByName("ID"); idField.IsValid() && idField.CanSet() {
-					idField.SetString(e.ID)
-				}
-			}
-		}
-	}
-}
-
 func (e *EntityWrapper) Sync(ctx context.Context) error {
-	return e.cs.Sync(ctx)
+	return e.cs.Sync(ctx, false)
 }
 
 func (e *EntityWrapper) Store(ctx context.Context) error {
