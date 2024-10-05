@@ -55,19 +55,19 @@ func main() {
 		),
 	)
 
-	_, err = nod.System().Loader().Builder(constant.ActorWebsoketAcceptor).WithID("1").WithOpt("port", "8008").RegisterLocally()
+	_, err = nod.System().Loader(constant.ActorWebsoketAcceptor).WithID("1").WithOpt("port", "8008").Build()
 	if err != nil {
 		panic(err.Error())
 	}
-	_, err = nod.System().Loader().Builder(constant.ActorLogin).WithID(mocknodid + "_login").RegisterLocally()
+	_, err = nod.System().Loader(constant.ActorLogin).WithID(mocknodid + "_login").Build()
 	if err != nil {
 		panic(err.Error())
 	}
-	_, err = nod.System().Loader().Builder(def.ActorDynamicPicker).WithID(mocknodid + "_picker").RegisterLocally()
+	_, err = nod.System().Loader(def.ActorDynamicPicker).WithID(mocknodid + "_picker").Build()
 	if err != nil {
 		panic(err.Error())
 	}
-	_, err = nod.System().Loader().Builder(def.ActorDynamicRegister).WithID(mocknodid + "_register").RegisterLocally()
+	_, err = nod.System().Loader(def.ActorDynamicRegister).WithID(mocknodid + "_register").Build()
 	if err != nil {
 		panic(err.Error())
 	}

@@ -4,7 +4,6 @@ import (
 	"braid-demo/models/gameproto"
 	"braid-demo/models/session"
 	"bytes"
-	"context"
 	"encoding/binary"
 	"sync"
 
@@ -22,15 +21,17 @@ var bufferPool = sync.Pool{
 	},
 }
 
-func MakeWebsocketNotify(actorCtx context.Context) core.IChain {
+type SessionState struct{}
+
+func MakeWebsocketNotify(ctx core.ActorContext) core.IChain {
 
 	return &actor.DefaultChain{
 
 		Handler: func(mw *router.MsgWrapper) error {
-			state := core.GetState(actorCtx).(*session.State)
+			state := ctx.GetValue(SessionState{}).(*session.State)
 			conn, ok := state.GetSession(mw.Res.Header.Token)
 			if !ok {
-				log.Warn("websocket get session err, token : %v", mw.Res.Header.Token)
+				log.WarnF("websocket get session err, token : %v", mw.Res.Header.Token)
 				return nil
 			}
 

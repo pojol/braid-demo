@@ -5,7 +5,6 @@ import (
 	"braid-demo/middleware"
 	"braid-demo/models/chat"
 	"braid-demo/models/gameproto"
-	"context"
 	"fmt"
 
 	"github.com/gogo/protobuf/proto"
@@ -17,7 +16,7 @@ import (
 	"github.com/pojol/braid/router"
 )
 
-func MakeChatSendCmd(actorCtx context.Context) core.IChain {
+func MakeChatSendCmd(ctx core.ActorContext) core.IChain {
 
 	unpackCfg := &middleware.MessageUnpackCfg[*gameproto.ChatSendReq]{}
 
@@ -26,8 +25,6 @@ func MakeChatSendCmd(actorCtx context.Context) core.IChain {
 		Handler: func(mw *router.MsgWrapper) error {
 
 			req := unpackCfg.Msg.(*gameproto.ChatSendReq)
-			sys := core.GetSystem(actorCtx)
-			actor := core.GetActor(actorCtx)
 
 			// check if the channel is valid
 			// ...
@@ -47,11 +44,11 @@ func MakeChatSendCmd(actorCtx context.Context) core.IChain {
 					targetActorTy = constant.ActorGuildChat
 				}
 			default:
-				log.Info("actor %v sent chat message is unknown channel %v", req.Msg.SenderID, req.Msg.Channel)
+				log.InfoF("actor %v sent chat message is unknown channel %v", req.Msg.SenderID, req.Msg.Channel)
 				return nil
 			}
 
-			err := actor.Call(router.Target{ID: targetActorID, Ty: targetActorTy, Ev: EvChatChannelReceived}, mw)
+			err := ctx.Call(router.Target{ID: targetActorID, Ty: targetActorTy, Ev: EvChatChannelReceived}, mw)
 			if err != nil {
 				fmt.Println("call", targetActorTy, err.Error())
 			}
@@ -59,7 +56,7 @@ func MakeChatSendCmd(actorCtx context.Context) core.IChain {
 			// If the target actor is a valid ID
 			// Send the message to the target actor's message queue, waiting for consumption after login
 			if err == fmt.Errorf("unknown actor") /* && actor is vaild */ {
-				sys.Pub(EvChatMessageStore, &router.Message{
+				ctx.Pub(EvChatMessageStore, &router.Message{
 					Header: &router.Header{
 						ID:    uuid.NewString(),
 						Event: targetActorID,
@@ -73,7 +70,7 @@ func MakeChatSendCmd(actorCtx context.Context) core.IChain {
 	}
 }
 
-func MakeChatRecved(actorCtx context.Context) core.IChain {
+func MakeChatRecved(ctx core.ActorContext) core.IChain {
 
 	unpackCfg := &middleware.MessageUnpackCfg[*gameproto.ChatSendReq]{}
 
@@ -82,8 +79,7 @@ func MakeChatRecved(actorCtx context.Context) core.IChain {
 		Handler: func(mw *router.MsgWrapper) error {
 
 			req := unpackCfg.Msg.(*gameproto.ChatSendReq)
-			state := actorCtx.Value(ChatStateType{}).(*chat.State)
-			sys := core.GetSystem(actorCtx)
+			state := ctx.GetValue(ChatStateType{}).(*chat.State)
 
 			state.MsgHistory = append(state.MsgHistory, *req.Msg)
 
@@ -96,7 +92,7 @@ func MakeChatRecved(actorCtx context.Context) core.IChain {
 			mw.Res.Body, _ = proto.Marshal(&notify)
 
 			if req.Msg.Channel == constant.ChatPrivateChannel {
-				sys.Send(router.Target{ID: def.SymbolLocalFirst, Ty: constant.ActorWebsoketAcceptor, Ev: EvWebsoketNotify},
+				ctx.Send(router.Target{ID: def.SymbolLocalFirst, Ty: constant.ActorWebsoketAcceptor, Ev: EvWebsoketNotify},
 					mw,
 				)
 			} else {
@@ -106,7 +102,7 @@ func MakeChatRecved(actorCtx context.Context) core.IChain {
 					mw.Res.Header.Token = v.ActorToken
 					mw.Res.Header.Event = EvChatMessageNty
 
-					sys.Send(router.Target{
+					ctx.Send(router.Target{
 						ID: v.ActorGate,
 						Ty: constant.ActorWebsoketAcceptor,
 						Ev: EvWebsoketNotify,
@@ -122,7 +118,7 @@ func MakeChatRecved(actorCtx context.Context) core.IChain {
 	}
 }
 
-func MakeChatStoreMessage(actorCtx context.Context) core.IChain {
+func MakeChatStoreMessage(ctx core.ActorContext) core.IChain {
 	return &actor.DefaultChain{
 		Handler: func(mw *router.MsgWrapper) error {
 
@@ -132,7 +128,7 @@ func MakeChatStoreMessage(actorCtx context.Context) core.IChain {
 }
 
 // Retrieve chat messages for a specific channel (paginated)
-func MakeChatMessages(actorCtx context.Context) core.IChain {
+func MakeChatMessages(ctx core.ActorContext) core.IChain {
 
 	return &actor.DefaultChain{}
 

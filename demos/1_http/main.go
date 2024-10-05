@@ -27,7 +27,7 @@ func main() {
 		),
 	)
 
-	_, err := nod.System().Loader().Builder(constant.ActorHttpAcceptor).WithID("1").WithOpt("port", "8008").RegisterLocally()
+	_, err := nod.System().Loader(constant.ActorHttpAcceptor).WithID("1").WithOpt("port", "8008").Build()
 	if err != nil {
 		panic(err)
 	}

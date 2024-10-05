@@ -17,18 +17,19 @@ type chatChannelActor struct {
 	state *chat.State
 }
 
-func NewChatActor(p *core.ActorLoaderBuilder) core.IActor {
+func NewChatActor(p core.IActorBuilder) core.IActor {
 	return &chatChannelActor{
-		Runtime: &actor.Runtime{Id: p.ID, Ty: p.Options["channel"].(string), Sys: p.ISystem},
+		Runtime: &actor.Runtime{Id: p.GetID(), Ty: p.GetOpt("channel").(string), Sys: p.GetSystem()},
 		state: &chat.State{
-			Channel: p.Options["channel"].(string),
+			Channel: p.GetOpt("channel").(string),
 		},
 	}
 }
 
 func (a *chatChannelActor) Init(ctx context.Context) {
 	a.Runtime.Init(ctx)
-	a.SetContext(events.ChatStateType{}, a.state)
+
+	a.Context().WithValue(events.ChatStateType{}, a.state)
 
 	a.RegisterEvent(events.EvChatChannelReceived, events.MakeChatRecved)
 	a.RegisterEvent(events.EvChatChannelMessages, events.MakeChatMessages)
@@ -39,6 +40,6 @@ func (a *chatChannelActor) Init(ctx context.Context) {
 		a.RegisterEvent(events.EvChatMessageStore, events.MakeChatStoreMessage)
 	}, pubsub.WithTTL(time.Hour*24*30))
 	if err != nil {
-		log.Warn("actor %v ty %v subscription event %v err %v", a.Id, a.Ty, events.EvChatMessageStore, err.Error())
+		log.WarnF("actor %v ty %v subscription event %v err %v", a.Id, a.Ty, events.EvChatMessageStore, err.Error())
 	}
 }

@@ -24,11 +24,11 @@ type httpAcceptorActor struct {
 	Port    string
 }
 
-func NewHttpAcceptorActor(p *core.ActorLoaderBuilder) core.IActor {
+func NewHttpAcceptorActor(p core.IActorBuilder) core.IActor {
 	return &httpAcceptorActor{
-		Runtime: &actor.Runtime{Id: p.ID, Ty: constant.ActorHttpAcceptor, Sys: p.ISystem},
+		Runtime: &actor.Runtime{Id: p.GetID(), Ty: constant.ActorHttpAcceptor, Sys: p.GetSystem()},
 		echoptr: echo.New(),
-		Port:    p.Options["port"].(string),
+		Port:    p.GetOpt("port").(string),
 	}
 }
 
@@ -39,7 +39,7 @@ func (a *httpAcceptorActor) Init(ctx context.Context) {
 
 	recovercfg := middleware.DefaultRecoverConfig
 	recovercfg.LogErrorFunc = func(c echo.Context, err error, stack []byte) error {
-		log.Error("recover err %v stack %v", err.Error(), string(stack))
+		log.ErrorF("recover err %v stack %v", err.Error(), string(stack))
 		return nil
 	}
 	a.echoptr.Use(middleware.RecoverWithConfig(recovercfg))
@@ -58,7 +58,7 @@ func (a *httpAcceptorActor) Init(ctx context.Context) {
 			msg,
 		)
 		if err != nil {
-			log.Warn("call %v err %v", c.Request().Method, err.Error())
+			log.WarnF("call %v err %v", c.Request().Method, err.Error())
 		}
 
 		c.Blob(http.StatusOK, echo.MIMEApplicationJSON, msg.Res.Body)
@@ -79,7 +79,7 @@ func (a *httpAcceptorActor) Exit() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	if err := a.echoptr.Shutdown(ctx); err != nil {
-		log.Error("failed to shutdown server: %v", err)
+		log.ErrorF("failed to shutdown server: %v", err)
 	}
 
 	a.Runtime.Exit()

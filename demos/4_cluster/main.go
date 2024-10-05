@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/pojol/braid/3rd/mgo"
 	"github.com/pojol/braid/3rd/redis"
@@ -13,6 +14,8 @@ import (
 	"github.com/pojol/braid/core/cluster/node"
 	"github.com/pojol/braid/def"
 	"github.com/pojol/braid/lib/log"
+	"github.com/pojol/braid/lib/span"
+	"github.com/pojol/braid/lib/tracer"
 )
 
 // 1. 创建多个节点
@@ -27,17 +30,26 @@ import (
 func main() {
 	// Add flag parsing
 	id := flag.String("id", "", "Node ID (required)")
-	port := flag.String("port", "", "Port number (required)")
+	iPort := flag.String("iport", "", "Internal port number (optional)")
+	ePort := flag.String("eport", "", "External port number (optional)")
+
 	flag.Parse()
 
-	if *id == "" || *port == "" {
+	if *id == "" {
 		flag.Usage()
 		fmt.Println("\nError: Both --id and --port are required")
 		os.Exit(1)
 	}
 
 	nodeid := *id
-	nodePort := *port
+	var InternalPort, ExternalPort string
+	if *iPort != "" {
+		InternalPort = *iPort
+	}
+
+	if *ePort != "" {
+		ExternalPort = *ePort
+	}
 
 	slog, _ := log.NewServerLogger(nodeid)
 	log.SetSLog(slog)
@@ -54,35 +66,63 @@ func main() {
 	// mock redis
 	redis.BuildClientWithOption(redis.WithAddr("redis://127.0.0.1:6379/0"))
 
-	nod := node.BuildProcessWithOption(
-		core.WithSystem(node.BuildSystemWithOption(nodeid, actors.BuildActorFactory())),
+	trc := tracer.BuildWithOption(
+		tracer.WithServiceName("braid-demo"),
+		tracer.WithProbabilistic(1),
+		tracer.WithHTTP("http://127.0.0.1:14268/api/traces"),
+		tracer.WithSpanFactory(
+			tracer.TracerFactory{
+				Name:    span.SystemCall,
+				Factory: span.CreateCallSpan(span.WithNodeID(nodeid)),
+			},
+		),
 	)
 
-	_, err = nod.System().Loader().Builder(constant.ActorWebsoketAcceptor).WithID("1").WithOpt("port", nodePort).RegisterLocally()
+	var sysopts []node.SystemOption
+
+	sysopts = append(sysopts, node.SystemWithTracer(trc))
+	if InternalPort != "" {
+		iport, err := strconv.Atoi(InternalPort)
+		if err != nil {
+			panic(err)
+		}
+		sysopts = append(sysopts, node.SystemWithAcceptor(iport))
+	}
+
+	nod := node.BuildProcessWithOption(
+		core.WithSystem(
+			node.BuildSystemWithOption(nodeid, actors.BuildActorFactory(), sysopts...),
+		),
+	)
+
+	if ExternalPort != "" {
+		_, err = nod.System().Loader(constant.ActorWebsoketAcceptor).WithID("1").WithOpt("port", ExternalPort).Build()
+		if err != nil {
+			panic(err.Error())
+		}
+	}
+	_, err = nod.System().Loader(constant.ActorLogin).WithID(nodeid + "_login").Build()
 	if err != nil {
 		panic(err.Error())
 	}
-	_, err = nod.System().Loader().Builder(constant.ActorLogin).WithID(nodeid + "_login").RegisterLocally()
-	if err != nil {
-		panic(err.Error())
-	}
-	_, err = nod.System().Loader().Builder(def.ActorDynamicPicker).WithID(nodeid + "_picker").RegisterLocally()
-	if err != nil {
-		panic(err.Error())
-	}
-	_, err = nod.System().Loader().Builder(def.ActorDynamicRegister).WithID(nodeid + "_register").RegisterLocally()
+	_, err = nod.System().Loader(def.ActorDynamicPicker).WithID(nodeid + "_picker").Build()
 	if err != nil {
 		panic(err.Error())
 	}
 
-	_, err = nod.System().Loader().Builder(constant.ActorGlobalChat).
-		WithID(nodeid+"_"+constant.ActorGlobalChat).
-		WithOpt("channel", constant.ActorGlobalChat).RegisterLocally()
+	_, err = nod.System().Loader(def.ActorDynamicRegister).WithID(nodeid + "_register").Build()
 	if err != nil {
 		panic(err.Error())
 	}
-	_, err = nod.System().Loader().Builder(constant.ActorRouterChat).
-		WithID(nodeid + "_" + constant.ActorRouterChat).RegisterLocally()
+
+	_, err = nod.System().Loader(constant.ActorGlobalChat).
+		WithID(nodeid+"_"+constant.ActorGlobalChat).
+		WithOpt("channel", constant.ActorGlobalChat).Build()
+	if err != nil {
+		panic(err.Error())
+	}
+	_, err = nod.System().Loader(constant.ActorRouterChat).
+		WithID(nodeid + "_" + constant.ActorRouterChat).Build()
 	if err != nil {
 		panic(err.Error())
 	}

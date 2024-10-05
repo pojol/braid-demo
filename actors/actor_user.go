@@ -20,11 +20,11 @@ type mockUserActor struct {
 	entity    *user.EntityWrapper
 }
 
-func NewUserActor(p *core.ActorLoaderBuilder) core.IActor {
+func NewUserActor(p core.IActorBuilder) core.IActor {
 	return &mockUserActor{
-		Runtime:   &actor.Runtime{Id: p.ID, Ty: constant.ActorUser, Sys: p.ISystem},
-		gateActor: p.Options["gateActor"].(string),
-		entity:    user.NewEntityWapper(p.ID),
+		Runtime:   &actor.Runtime{Id: p.GetID(), Ty: constant.ActorUser, Sys: p.GetSystem()},
+		gateActor: p.GetOpt("gateActor").(string),
+		entity:    user.NewEntityWapper(p.GetID()),
 	}
 }
 
@@ -34,17 +34,18 @@ func (a *mockUserActor) Init(ctx context.Context) {
 	if err != nil {
 		panic(fmt.Errorf("load user actor err %v", err.Error()))
 	}
-	a.SetContext(core.StateKey{}, a.entity)
+
+	a.Context().WithValue(events.UserStateType{}, a.entity)
 
 	a.RegisterEvent(events.EvUserUseItem, events.MakeUserUseItem)
 	a.RegisterEvent(events.EvUserChatAddChannel, events.MakeChatAddChannel)
 	a.RegisterEvent(events.EvUserChatRemoveChannel, events.MakeChatRemoveChannel)
 
 	// 不能在一个动态构建里面创建一个动态构建
-	a.Sys.Loader().Builder(constant.ActorPrivateChat).
+	a.Sys.Loader(constant.ActorPrivateChat).
 		WithID("chat."+constant.ChatPrivateChannel+"."+a.Id).
 		WithOpt("channel", constant.ChatPrivateChannel).
-		WithOpt("actorID", a.Id).RegisterDynamically()
+		WithOpt("actorID", a.Id).WithPicker().Build()
 
 	err = a.Call(router.Target{ID: def.SymbolLocalFirst, Ty: constant.ActorGlobalChat, Ev: events.EvChatChannelAddUser},
 		router.NewMsgWrap(context.TODO()).WithReqHeader(&router.Header{
@@ -56,7 +57,7 @@ func (a *mockUserActor) Init(ctx context.Context) {
 		}).Build(),
 	)
 	if err != nil {
-		log.Warn("system call %v err %v", events.EvChatChannelAddUser, err.Error())
+		log.WarnF("system call %v err %v", events.EvChatChannelAddUser, err.Error())
 	}
 
 	// one minute try sync to cache
@@ -66,7 +67,7 @@ func (a *mockUserActor) Init(ctx context.Context) {
 		return nil
 	}, nil)
 
-	log.Info("user actor %v init succ", a.entity.ID)
+	log.InfoF("user actor %v init succ", a.entity.ID)
 }
 
 func (a *mockUserActor) Exit() {

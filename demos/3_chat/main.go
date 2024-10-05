@@ -35,31 +35,31 @@ func main() {
 		core.WithSystem(node.BuildSystemWithOption(nodeid, actors.BuildActorFactory())),
 	)
 
-	_, err = nod.System().Loader().Builder(constant.ActorWebsoketAcceptor).WithID("1").WithOpt("port", "8008").RegisterLocally()
+	_, err = nod.System().Loader(constant.ActorWebsoketAcceptor).WithID("1").WithOpt("port", "8008").Build()
 	if err != nil {
 		panic(err.Error())
 	}
-	_, err = nod.System().Loader().Builder(constant.ActorLogin).WithID(nodeid + "_login").RegisterLocally()
+	_, err = nod.System().Loader(constant.ActorLogin).WithID(nodeid + "_login").Build()
 	if err != nil {
 		panic(err.Error())
 	}
-	_, err = nod.System().Loader().Builder(def.ActorDynamicPicker).WithID(nodeid + "_picker").RegisterLocally()
+	_, err = nod.System().Loader(def.ActorDynamicPicker).WithID(nodeid + "_picker").Build()
 	if err != nil {
 		panic(err.Error())
 	}
-	_, err = nod.System().Loader().Builder(def.ActorDynamicRegister).WithID(nodeid + "_register").RegisterLocally()
+	_, err = nod.System().Loader(def.ActorDynamicRegister).WithID(nodeid + "_register").Build()
 	if err != nil {
 		panic(err.Error())
 	}
 
-	_, err = nod.System().Loader().Builder(constant.ActorGlobalChat).
+	_, err = nod.System().Loader(constant.ActorGlobalChat).
 		WithID(nodeid+"_"+constant.ActorGlobalChat).
-		WithOpt("channel", constant.ActorGlobalChat).RegisterLocally()
+		WithOpt("channel", constant.ActorGlobalChat).Build()
 	if err != nil {
 		panic(err.Error())
 	}
-	_, err = nod.System().Loader().Builder(constant.ActorRouterChat).
-		WithID(nodeid + "_" + constant.ActorRouterChat).RegisterLocally()
+	_, err = nod.System().Loader(constant.ActorRouterChat).
+		WithID(nodeid + "_" + constant.ActorRouterChat).Build()
 	if err != nil {
 		panic(err.Error())
 	}
