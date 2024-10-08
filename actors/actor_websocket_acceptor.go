@@ -1,7 +1,7 @@
 package actors
 
 import (
-	"braid-demo/constant"
+	"braid-demo/config"
 	"braid-demo/events"
 	"braid-demo/models/gameproto"
 	"braid-demo/models/session"
@@ -48,7 +48,7 @@ func NewWSAcceptorActor(p core.IActorBuilder) core.IActor {
 	echoptr.HideBanner = true
 
 	return &websocketAcceptorActor{
-		Runtime: &actor.Runtime{Id: p.GetID(), Ty: constant.ActorWebsoketAcceptor, Sys: p.GetSystem()},
+		Runtime: &actor.Runtime{Id: p.GetID(), Ty: p.GetType(), Sys: p.GetSystem()},
 		echoptr: echoptr,
 		Port:    p.GetOpt("port").(string),
 		state: &session.State{
@@ -129,10 +129,10 @@ func (a *websocketAcceptorActor) received(c echo.Context) error {
 		switch header.Event {
 		case events.EvLogin:
 			actorid = def.SymbolLocalFirst
-			actorty = constant.ActorLogin
+			actorty = config.ACTOR_LOGIN
 		case events.EvChatSendMessage:
 			actorid = def.SymbolLocalFirst
-			actorty = constant.ActorRouterChat
+			actorty = config.ACTOR_ROUTER_CHAT
 		default:
 			eid, err := token.Parse(header.Token)
 			if err != nil {
@@ -141,7 +141,7 @@ func (a *websocketAcceptorActor) received(c echo.Context) error {
 			}
 
 			actorid = eid
-			actorty = constant.ActorUser
+			actorty = config.ACTOR_USER
 			bh.Token = header.Token
 		}
 

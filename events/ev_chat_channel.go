@@ -1,6 +1,7 @@
 package events
 
 import (
+	"braid-demo/config"
 	"braid-demo/constant"
 	"braid-demo/middleware"
 	"braid-demo/models/chat"
@@ -39,9 +40,7 @@ func MakeChatSendCmd(ctx core.ActorContext) core.IChain {
 			case constant.ChatGlobalChannel, constant.ChatGuildChannel:
 				targetActorID = def.SymbolLocalFirst
 				if req.Msg.Channel == constant.ChatGlobalChannel {
-					targetActorTy = constant.ActorGlobalChat
-				} else if req.Msg.Channel == constant.ChatGuildChannel {
-					targetActorTy = constant.ActorGuildChat
+					targetActorTy = config.ACTOR_GLOBAL_CHAT
 				}
 			default:
 				log.InfoF("actor %v sent chat message is unknown channel %v", req.Msg.SenderID, req.Msg.Channel)
@@ -92,7 +91,7 @@ func MakeChatRecved(ctx core.ActorContext) core.IChain {
 			mw.Res.Body, _ = proto.Marshal(&notify)
 
 			if req.Msg.Channel == constant.ChatPrivateChannel {
-				ctx.Send(router.Target{ID: def.SymbolLocalFirst, Ty: constant.ActorWebsoketAcceptor, Ev: EvWebsoketNotify},
+				ctx.Send(router.Target{ID: def.SymbolLocalFirst, Ty: config.ACTOR_WEBSOCKET_ACCEPTOR, Ev: EvWebsoketNotify},
 					mw,
 				)
 			} else {
@@ -104,7 +103,7 @@ func MakeChatRecved(ctx core.ActorContext) core.IChain {
 
 					ctx.Send(router.Target{
 						ID: v.ActorGate,
-						Ty: constant.ActorWebsoketAcceptor,
+						Ty: config.ACTOR_WEBSOCKET_ACCEPTOR,
 						Ev: EvWebsoketNotify,
 					},
 						mw,

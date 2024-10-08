@@ -2,14 +2,14 @@ package main
 
 import (
 	"braid-demo/actors"
-	"braid-demo/constant"
+	"braid-demo/config"
 	"fmt"
+	"os"
 
 	"github.com/pojol/braid/3rd/mgo"
 	"github.com/pojol/braid/3rd/redis"
 	"github.com/pojol/braid/core"
 	"github.com/pojol/braid/core/cluster/node"
-	"github.com/pojol/braid/def"
 	"github.com/pojol/braid/lib/log"
 	"github.com/pojol/braid/lib/span"
 	"github.com/pojol/braid/lib/tracer"
@@ -20,7 +20,8 @@ func main() {
 	log.SetSLog(slog)
 	defer log.Sync()
 
-	mocknodid := "ws1-1"
+	// mock
+	os.Setenv("NODE_ID", "ws1-1")
 
 	err := mgo.Build(mgo.AppendConn(mgo.ConnInfo{
 		Name: "braid-demo",
@@ -32,6 +33,11 @@ func main() {
 
 	// mock redis
 	redis.BuildClientWithOption(redis.WithAddr("redis://127.0.0.1:6379/0"))
+
+	nodeCfg, actorTypes, err := config.ParseConfig("conf.yml", "../../config/actor_types.yml")
+	if err != nil {
+		panic(err)
+	}
 
 	trc := tracer.BuildWithOption(
 		tracer.WithServiceName("braid-demo"),
@@ -45,31 +51,24 @@ func main() {
 		),
 	)
 
+	factory := actors.BuildActorFactory(actorTypes)
+
 	nod := node.BuildProcessWithOption(
-		core.WithNodeID(mocknodid),
+		core.WithNodeID(nodeCfg.ID),
 		core.WithSystem(
-			node.BuildSystemWithOption(mocknodid,
-				actors.BuildActorFactory(),
-				node.SystemWithTracer(trc),
-			),
+			node.BuildSystemWithOption(nodeCfg.ID, factory, node.SystemWithTracer(trc)),
 		),
 	)
 
-	_, err = nod.System().Loader(constant.ActorWebsoketAcceptor).WithID("1").WithOpt("port", "8008").Build()
-	if err != nil {
-		panic(err.Error())
-	}
-	_, err = nod.System().Loader(constant.ActorLogin).WithID(mocknodid + "_login").Build()
-	if err != nil {
-		panic(err.Error())
-	}
-	_, err = nod.System().Loader(def.ActorDynamicPicker).WithID(mocknodid + "_picker").Build()
-	if err != nil {
-		panic(err.Error())
-	}
-	_, err = nod.System().Loader(def.ActorDynamicRegister).WithID(mocknodid + "_register").Build()
-	if err != nil {
-		panic(err.Error())
+	for _, regActor := range nodeCfg.Actors {
+		builder := nod.System().Loader(regActor.Name).WithID(nodeCfg.ID + "_" + regActor.Name)
+		for key, val := range regActor.Options {
+			builder.WithOpt(key, val)
+		}
+		_, err = builder.Build()
+		if err != nil {
+			panic(err.Error())
+		}
 	}
 
 	err = nod.Init()

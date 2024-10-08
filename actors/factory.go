@@ -1,11 +1,10 @@
 package actors
 
 import (
-	"braid-demo/constant"
+	"braid-demo/config"
 
 	"github.com/pojol/braid/actors"
 	"github.com/pojol/braid/core"
-	"github.com/pojol/braid/def"
 )
 
 // MockActorFactory is a factory for creating actors
@@ -14,23 +13,37 @@ type MockActorFactory struct {
 }
 
 // NewActorFactory create new actor factory
-func BuildActorFactory() *MockActorFactory {
+func BuildActorFactory(actorcfg []config.ActorConfig) *MockActorFactory {
 	factory := &MockActorFactory{
 		constructors: make(map[string]*core.ActorConstructor),
 	}
 
-	factory.bind(constant.ActorHttpAcceptor, true, 800, 1, NewHttpAcceptorActor)
-	factory.bind(constant.ActorWebsoketAcceptor, true, 800, 1, NewWSAcceptorActor)
+	for _, v := range actorcfg {
+		var create core.CreateFunc
 
-	factory.bind(constant.ActorGlobalChat, false, 3000, 1, NewChatActor)
-	factory.bind(constant.ActorPrivateChat, false, 10, 1, NewChatActor)
-	factory.bind(constant.ActorRouterChat, true, 80, 1, NewRouterChatActor)
+		switch v.Name {
+		case config.ACTOR_WEBSOCKET_ACCEPTOR:
+			create = NewWSAcceptorActor
+		case config.ACTOR_HTTP_ACCEPTOR:
+			create = NewHttpAcceptorActor
+		case config.ACTOR_LOGIN:
+			create = NewLoginActor
+		case config.ACTOR_USER:
+			create = NewUserActor
+		case config.ACTOR_DYNAMIC_PICKER:
+			create = actors.NewDynamicPickerActor
+		case config.ACTOR_DYNAMIC_REGISTER:
+			create = actors.NewDynamicRegisterActor
+		case config.ACTOR_CONTROL:
+			create = actors.NewControlActor
+		case config.ACTOR_GLOBAL_CHAT:
+			create = NewChatActor
+		case config.ACTOR_ROUTER_CHAT:
+			create = NewRouterChatActor
+		}
 
-	factory.bind(constant.ActorLogin, false, 800, 2, NewLoginActor)
-	factory.bind(constant.ActorUser, false, 80, 10000, NewUserActor)
-
-	factory.bind(def.ActorDynamicPicker, true, 80, 10, actors.NewDynamicPickerActor)
-	factory.bind(def.ActorDynamicRegister, true, 80, 0, actors.NewDynamicRegisterActor)
+		factory.bind(v.Name, v.Unique, v.Weight, v.Limit, create)
+	}
 
 	return factory
 }

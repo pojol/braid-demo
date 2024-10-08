@@ -2,8 +2,9 @@ package main
 
 import (
 	"braid-demo/actors"
-	"braid-demo/constant"
+	"braid-demo/config"
 	"fmt"
+	"os"
 
 	"github.com/pojol/braid/3rd/redis"
 	"github.com/pojol/braid/core"
@@ -16,20 +17,34 @@ func main() {
 	log.SetSLog(slog)
 	defer log.Sync()
 
-	mocknodid := "http-1"
+	// mock
+	os.Setenv("NODE_ID", "http-1")
 
 	// mock redis
 	redis.BuildClientWithOption(redis.WithAddr("redis://127.0.0.1:6379/0"))
 
+	nodeCfg, actorTypes, err := config.ParseConfig("conf.yml", "../../config/actor_types.yml")
+	if err != nil {
+		panic(err)
+	}
+
+	factory := actors.BuildActorFactory(actorTypes)
+
 	nod := node.BuildProcessWithOption(
 		core.WithSystem(
-			node.BuildSystemWithOption(mocknodid, actors.BuildActorFactory()),
+			node.BuildSystemWithOption(nodeCfg.ID, factory),
 		),
 	)
 
-	_, err := nod.System().Loader(constant.ActorHttpAcceptor).WithID("1").WithOpt("port", "8008").Build()
-	if err != nil {
-		panic(err)
+	for _, regActor := range nodeCfg.Actors {
+		builder := nod.System().Loader(regActor.Name).WithID(nodeCfg.ID + "_" + regActor.Name)
+		for key, val := range regActor.Options {
+			builder.WithOpt(key, val)
+		}
+		_, err = builder.Build()
+		if err != nil {
+			panic(err.Error())
+		}
 	}
 
 	err = nod.Init()

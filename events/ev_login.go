@@ -1,6 +1,7 @@
 package events
 
 import (
+	"braid-demo/config"
 	"braid-demo/constant"
 	"braid-demo/errcode"
 	"braid-demo/middleware"
@@ -71,8 +72,8 @@ func MakeWSLogin(ctx core.ActorContext) core.IChain {
 				log.InfoF("user %v refresh token %v", e.ID, newToken)
 			}
 
-			mw.Req.Header.PrevActorType = constant.ActorLogin
-			_, err = ctx.Loader(constant.ActorUser).WithID(e.ID).
+			mw.Req.Header.PrevActorType = config.ACTOR_LOGIN
+			_, err = ctx.Loader(config.ACTOR_USER).WithID(e.ID).
 				WithOpt("gateActor", mw.Req.Header.OrgActorID).WithPicker().Build()
 			if err != nil {
 				fmt.Println("login ->", "regist actor err", err.Error())

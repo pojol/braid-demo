@@ -1,7 +1,6 @@
 package actors
 
 import (
-	"braid-demo/constant"
 	"braid-demo/events"
 	"context"
 
@@ -15,7 +14,7 @@ type chatRouterActor struct {
 
 func NewRouterChatActor(p core.IActorBuilder) core.IActor {
 	return &chatRouterActor{
-		Runtime: &actor.Runtime{Id: p.GetID(), Ty: constant.ActorRouterChat, Sys: p.GetSystem()},
+		Runtime: &actor.Runtime{Id: p.GetID(), Ty: p.GetType(), Sys: p.GetSystem()},
 	}
 }
 

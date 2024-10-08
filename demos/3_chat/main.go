@@ -2,14 +2,14 @@ package main
 
 import (
 	"braid-demo/actors"
-	"braid-demo/constant"
+	"braid-demo/config"
 	"fmt"
+	"os"
 
 	"github.com/pojol/braid/3rd/mgo"
 	"github.com/pojol/braid/3rd/redis"
 	"github.com/pojol/braid/core"
 	"github.com/pojol/braid/core/cluster/node"
-	"github.com/pojol/braid/def"
 	"github.com/pojol/braid/lib/log"
 )
 
@@ -29,39 +29,29 @@ func main() {
 	// mock redis
 	redis.BuildClientWithOption(redis.WithAddr("redis://127.0.0.1:6379/0"))
 
-	nodeid := "chat-1"
+	// mock
+	os.Setenv("NODE_ID", "chat-1")
+
+	nodeCfg, actorTypes, err := config.ParseConfig("conf.yml", "../../config/actor_types.yml")
+	if err != nil {
+		panic(err)
+	}
+
+	factory := actors.BuildActorFactory(actorTypes)
 
 	nod := node.BuildProcessWithOption(
-		core.WithSystem(node.BuildSystemWithOption(nodeid, actors.BuildActorFactory())),
+		core.WithSystem(node.BuildSystemWithOption(nodeCfg.ID, factory)),
 	)
 
-	_, err = nod.System().Loader(constant.ActorWebsoketAcceptor).WithID("1").WithOpt("port", "8008").Build()
-	if err != nil {
-		panic(err.Error())
-	}
-	_, err = nod.System().Loader(constant.ActorLogin).WithID(nodeid + "_login").Build()
-	if err != nil {
-		panic(err.Error())
-	}
-	_, err = nod.System().Loader(def.ActorDynamicPicker).WithID(nodeid + "_picker").Build()
-	if err != nil {
-		panic(err.Error())
-	}
-	_, err = nod.System().Loader(def.ActorDynamicRegister).WithID(nodeid + "_register").Build()
-	if err != nil {
-		panic(err.Error())
-	}
-
-	_, err = nod.System().Loader(constant.ActorGlobalChat).
-		WithID(nodeid+"_"+constant.ActorGlobalChat).
-		WithOpt("channel", constant.ActorGlobalChat).Build()
-	if err != nil {
-		panic(err.Error())
-	}
-	_, err = nod.System().Loader(constant.ActorRouterChat).
-		WithID(nodeid + "_" + constant.ActorRouterChat).Build()
-	if err != nil {
-		panic(err.Error())
+	for _, regActor := range nodeCfg.Actors {
+		builder := nod.System().Loader(regActor.Name).WithID(nodeCfg.ID + "_" + regActor.Name)
+		for key, val := range regActor.Options {
+			builder.WithOpt(key, val)
+		}
+		_, err = builder.Build()
+		if err != nil {
+			panic(err.Error())
+		}
 	}
 
 	err = nod.Init()

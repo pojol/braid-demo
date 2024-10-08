@@ -1,0 +1,20 @@
+
+node:
+  # 节点唯一标识符，可以通过环境变量 NODE_ID 传入
+  id: "{NODE_ID}"
+  weight: "{NODE_WEIGHT}"
+  
+  # Actor 配置列表
+  actors:
+    # WebSocket 接收器 Actor
+    - name: "HTTP_ACCEPTOR"
+      options:
+        port: "8008"
+
+    - name: "CONTROL"
+
+    # 动态选择器 Actor
+    - name: "DYNAMIC_PICKER"
+
+    # 动态注册器 Actor
+    - name: "DYNAMIC_REGISTER"

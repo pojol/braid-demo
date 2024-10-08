@@ -1,7 +1,6 @@
 package actors
 
 import (
-	"braid-demo/constant"
 	"braid-demo/events"
 	"context"
 	"fmt"
@@ -26,7 +25,7 @@ type httpAcceptorActor struct {
 
 func NewHttpAcceptorActor(p core.IActorBuilder) core.IActor {
 	return &httpAcceptorActor{
-		Runtime: &actor.Runtime{Id: p.GetID(), Ty: constant.ActorHttpAcceptor, Sys: p.GetSystem()},
+		Runtime: &actor.Runtime{Id: p.GetID(), Ty: p.GetType(), Sys: p.GetSystem()},
 		echoptr: echo.New(),
 		Port:    p.GetOpt("port").(string),
 	}
@@ -71,7 +70,7 @@ func (a *httpAcceptorActor) Update() {
 
 	err := a.echoptr.Start(":" + a.Port)
 	if err != nil {
-		panic(fmt.Errorf("echo start err: %w", err))
+		fmt.Println(fmt.Errorf("echo start err: %w", err))
 	}
 }
 

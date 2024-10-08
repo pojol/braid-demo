@@ -1,6 +1,7 @@
 package actors
 
 import (
+	"braid-demo/config"
 	"braid-demo/constant"
 	"braid-demo/events"
 	"braid-demo/models/user"
@@ -22,7 +23,7 @@ type mockUserActor struct {
 
 func NewUserActor(p core.IActorBuilder) core.IActor {
 	return &mockUserActor{
-		Runtime:   &actor.Runtime{Id: p.GetID(), Ty: constant.ActorUser, Sys: p.GetSystem()},
+		Runtime:   &actor.Runtime{Id: p.GetID(), Ty: p.GetType(), Sys: p.GetSystem()},
 		gateActor: p.GetOpt("gateActor").(string),
 		entity:    user.NewEntityWapper(p.GetID()),
 	}
@@ -41,13 +42,12 @@ func (a *mockUserActor) Init(ctx context.Context) {
 	a.RegisterEvent(events.EvUserChatAddChannel, events.MakeChatAddChannel)
 	a.RegisterEvent(events.EvUserChatRemoveChannel, events.MakeChatRemoveChannel)
 
-	// 不能在一个动态构建里面创建一个动态构建
-	a.Sys.Loader(constant.ActorPrivateChat).
+	a.Sys.Loader(config.ACTOR_PRIVATE_CHAT).
 		WithID("chat."+constant.ChatPrivateChannel+"."+a.Id).
 		WithOpt("channel", constant.ChatPrivateChannel).
 		WithOpt("actorID", a.Id).WithPicker().Build()
 
-	err = a.Call(router.Target{ID: def.SymbolLocalFirst, Ty: constant.ActorGlobalChat, Ev: events.EvChatChannelAddUser},
+	err = a.Call(router.Target{ID: def.SymbolLocalFirst, Ty: config.ACTOR_GLOBAL_CHAT, Ev: events.EvChatChannelAddUser},
 		router.NewMsgWrap(context.TODO()).WithReqHeader(&router.Header{
 			Token: a.entity.User.Token,
 			Custom: map[string]string{
@@ -61,7 +61,7 @@ func (a *mockUserActor) Init(ctx context.Context) {
 	}
 
 	// one minute try sync to cache
-	a.RegisterTimer(0, 1000*60, func() error {
+	a.RegisterTimer(0, 1000*60, func(interface{}) error {
 		a.entity.Sync(context.TODO())
 
 		return nil
@@ -72,7 +72,7 @@ func (a *mockUserActor) Init(ctx context.Context) {
 
 func (a *mockUserActor) Exit() {
 
-	a.Call(router.Target{ID: def.SymbolLocalFirst, Ty: constant.ActorGlobalChat, Ev: events.EvChatChannelRmvUser},
+	a.Call(router.Target{ID: def.SymbolLocalFirst, Ty: config.ACTOR_GLOBAL_CHAT, Ev: events.EvChatChannelRmvUser},
 		router.NewMsgWrap(context.TODO()).WithReqHeader(&router.Header{
 			Token: a.entity.User.Token,
 			Custom: map[string]string{

@@ -1,7 +1,6 @@
 package actors
 
 import (
-	"braid-demo/constant"
 	"braid-demo/events"
 	"context"
 
@@ -15,7 +14,7 @@ type loginActor struct {
 
 func NewLoginActor(p core.IActorBuilder) core.IActor {
 	return &loginActor{
-		Runtime: &actor.Runtime{Id: p.GetID(), Ty: constant.ActorLogin, Sys: p.GetSystem()},
+		Runtime: &actor.Runtime{Id: p.GetID(), Ty: p.GetType(), Sys: p.GetSystem()},
 	}
 }
 
