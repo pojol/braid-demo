@@ -1,4 +1,4 @@
-package events
+package chains
 
 import (
 	"braid-demo/models/gameproto"

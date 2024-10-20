@@ -1,7 +1,7 @@
 package actors
 
 import (
-	"braid-demo/events"
+	"braid-demo/chains"
 	"context"
 
 	"github.com/pojol/braid/core"
@@ -21,5 +21,5 @@ func NewLoginActor(p core.IActorBuilder) core.IActor {
 func (a *loginActor) Init(ctx context.Context) {
 	a.Runtime.Init(ctx)
 
-	a.RegisterEvent(events.EvLogin, events.MakeWSLogin)
+	a.RegisterEvent(chains.EvLogin, chains.MakeWSLogin)
 }

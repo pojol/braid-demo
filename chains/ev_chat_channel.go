@@ -1,11 +1,11 @@
-package events
+package chains
 
 import (
-	"braid-demo/config"
 	"braid-demo/constant"
 	"braid-demo/middleware"
 	"braid-demo/models/chat"
 	"braid-demo/models/gameproto"
+	"braid-demo/template"
 	"fmt"
 
 	"github.com/gogo/protobuf/proto"
@@ -27,9 +27,6 @@ func MakeChatSendCmd(ctx core.ActorContext) core.IChain {
 
 			req := unpackCfg.Msg.(*gameproto.ChatSendReq)
 
-			// check if the channel is valid
-			// ...
-
 			targetActorID := ""
 			targetActorTy := ""
 
@@ -40,7 +37,7 @@ func MakeChatSendCmd(ctx core.ActorContext) core.IChain {
 			case constant.ChatGlobalChannel, constant.ChatGuildChannel:
 				targetActorID = def.SymbolLocalFirst
 				if req.Msg.Channel == constant.ChatGlobalChannel {
-					targetActorTy = config.ACTOR_GLOBAL_CHAT
+					targetActorTy = template.ACTOR_CHAT
 				}
 			default:
 				log.InfoF("actor %v sent chat message is unknown channel %v", req.Msg.SenderID, req.Msg.Channel)
@@ -91,7 +88,7 @@ func MakeChatRecved(ctx core.ActorContext) core.IChain {
 			mw.Res.Body, _ = proto.Marshal(&notify)
 
 			if req.Msg.Channel == constant.ChatPrivateChannel {
-				ctx.Send(router.Target{ID: def.SymbolLocalFirst, Ty: config.ACTOR_WEBSOCKET_ACCEPTOR, Ev: EvWebsoketNotify},
+				ctx.Send(router.Target{ID: def.SymbolLocalFirst, Ty: template.ACTOR_WEBSOCKET_ACCEPTOR, Ev: EvWebsoketNotify},
 					mw,
 				)
 			} else {
@@ -103,7 +100,7 @@ func MakeChatRecved(ctx core.ActorContext) core.IChain {
 
 					ctx.Send(router.Target{
 						ID: v.ActorGate,
-						Ty: config.ACTOR_WEBSOCKET_ACCEPTOR,
+						Ty: template.ACTOR_WEBSOCKET_ACCEPTOR,
 						Ev: EvWebsoketNotify,
 					},
 						mw,

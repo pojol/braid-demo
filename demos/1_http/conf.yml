@@ -1,20 +1,40 @@
 
 node:
-  # 节点唯一标识符，可以通过环境变量 NODE_ID 传入
-  id: "{NODE_ID}"
-  weight: "{NODE_WEIGHT}"
+  # 解析自动通过环境变量获取（也可以手动传入
+  id: "{BRAID_NODE_ID}"         # 节点唯一标识符  
+  weight: "{BRAID_NODE_WEIGHT}" # 节点总权重值
+  port: "{BRAID_NODE_PORT}"     # 节点rpc端口号
   
-  # Actor 配置列表
+  # Actor 配置列表（在模版中选择需要装载到这个节点的 actor
   actors:
-    # WebSocket 接收器 Actor
     - name: "HTTP_ACCEPTOR"
+      id: "http_acceptor"
+      weight: 100
+      unquie: true
       options:
         port: "8008"
-
-    - name: "CONTROL"
-
-    # 动态选择器 Actor
-    - name: "DYNAMIC_PICKER"
-
-    # 动态注册器 Actor
-    - name: "DYNAMIC_REGISTER"
+    - name: "CHAT"
+      id: "global_chat"
+      weight: 10000
+      limit: 1
+      unquie: true
+      options:
+        channel: "global"
+    - name: "CHAT"
+      id: "guild_chat"
+      weight: 50
+      options:
+        channel : "guild"
+    # core
+    - name : "DYNAMIC_REGISTER"
+      id : "dynamic_register"
+      weight: 500
+      unique: true
+    - name : "CONTROL"
+      id : "control"
+      weight: 50
+      unique: true
+    - name : "DYNAMIC_PICKER"
+      id : "dynamic_picker"
+      weight: 50
+      unique: true

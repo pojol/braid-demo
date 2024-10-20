@@ -1,9 +1,8 @@
 package actors
 
 import (
-	"braid-demo/config"
+	"braid-demo/template"
 
-	"github.com/pojol/braid/actors"
 	"github.com/pojol/braid/core"
 )
 
@@ -13,7 +12,7 @@ type MockActorFactory struct {
 }
 
 // NewActorFactory create new actor factory
-func BuildActorFactory(actorcfg []config.ActorConfig) *MockActorFactory {
+func BuildActorFactory(actorcfg []template.RegisteredActorConfig) *MockActorFactory {
 	factory := &MockActorFactory{
 		constructors: make(map[string]*core.ActorConstructor),
 	}
@@ -22,40 +21,38 @@ func BuildActorFactory(actorcfg []config.ActorConfig) *MockActorFactory {
 		var create core.CreateFunc
 
 		switch v.Name {
-		case config.ACTOR_WEBSOCKET_ACCEPTOR:
+		case template.ACTOR_WEBSOCKET_ACCEPTOR:
 			create = NewWSAcceptorActor
-		case config.ACTOR_HTTP_ACCEPTOR:
+		case template.ACTOR_HTTP_ACCEPTOR:
 			create = NewHttpAcceptorActor
-		case config.ACTOR_LOGIN:
+		case template.ACTOR_LOGIN:
 			create = NewLoginActor
-		case config.ACTOR_USER:
+		case template.ACTOR_USER:
 			create = NewUserActor
-		case config.ACTOR_DYNAMIC_PICKER:
-			create = actors.NewDynamicPickerActor
-		case config.ACTOR_DYNAMIC_REGISTER:
-			create = actors.NewDynamicRegisterActor
-		case config.ACTOR_CONTROL:
-			create = actors.NewControlActor
-		case config.ACTOR_GLOBAL_CHAT:
+		case template.ACTOR_DYNAMIC_PICKER:
+			create = NewDynamicPickerActor
+		case template.ACTOR_DYNAMIC_REGISTER:
+			create = NewDynamicRegisterActor
+		case template.ACTOR_CONTROL:
+			create = NewControlActor
+		case template.ACTOR_CHAT:
 			create = NewChatActor
-		case config.ACTOR_ROUTER_CHAT:
+		case template.ACTOR_ROUTER_CHAT:
 			create = NewRouterChatActor
 		}
 
-		factory.bind(v.Name, v.Unique, v.Weight, v.Limit, create)
+		factory.constructors[v.Name] = &core.ActorConstructor{
+			Constructor:         create,
+			ID:                  v.ID,
+			Name:                v.Name,
+			Weight:              v.Weight,
+			NodeUnique:          v.Unique,
+			GlobalQuantityLimit: v.Limit,
+			Options:             v.Options,
+		}
 	}
 
 	return factory
-}
-
-// Bind associates an actor type with its constructor function
-func (factory *MockActorFactory) bind(actorType string, unique bool, weight int, limit int, f core.CreateFunc) {
-	factory.constructors[actorType] = &core.ActorConstructor{
-		NodeUnique:          unique,
-		Weight:              weight,
-		Constructor:         f,
-		GlobalQuantityLimit: limit,
-	}
 }
 
 func (factory *MockActorFactory) Get(actorType string) *core.ActorConstructor {
@@ -64,4 +61,12 @@ func (factory *MockActorFactory) Get(actorType string) *core.ActorConstructor {
 	}
 
 	return nil
+}
+
+func (factory *MockActorFactory) GetActors() []*core.ActorConstructor {
+	actors := []*core.ActorConstructor{}
+	for _, v := range factory.constructors {
+		actors = append(actors, v)
+	}
+	return actors
 }

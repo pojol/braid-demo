@@ -1,4 +1,4 @@
-# Actor 类型定义
+# Actor 类型模版定义
 
 # 配置字段说明：
 # name: Actor 的类型名称，用于在代码中识别和创建 Actor
@@ -12,77 +12,39 @@
 # 比如 2c4g 的pod， 可以等于 2x4x1000 = 8000
 # 在这个基础上，我们可以通过压测数据，去规划调整 actor 的权重值
 
-actor_types:
+actor_templates:
   # WebSocket 接收器
   # 用于接受 WebSocket 连接的 Actor
-  # 选项:
+  # 可选项:
   #   - port: WebSocket 服务器端口
 - name: "WEBSOCKET_ACCEPTOR"
-  unique: true
-  weight: 800
-  limit: 1
-  # options 部分被移除，将在 node conf.yml 中定义
-  # - port 对外端口号
-  # like:
-  #options:
-  #  port: "8008"
 
+# 可选项:
+#   - port: WebSocket 服务器端口
 - name: "HTTP_ACCEPTOR"
-  unique: true
-  weight: 800
-  limit: 1
-  # - port 对外端口号
 
-  # 登录处理
-  # 处理用户登录请求的 Actor
+# 登录处理
+# 处理用户登录请求的 Actor
 - name: "LOGIN"
-  unique: false
-  weight: 800
-  limit: 2
 
 - name: "USER"
-  unique: false
-  weight: 80
-  limit: 10000
 
-  # 动态选择器
-  # 用于动态选择其他 Actor 的 Actor
+# 动态选择器
+# 用于动态选择其他 Actor 的 Actor
 - name: "DYNAMIC_PICKER"
-  unique: true
-  weight: 80
-  limit: 10
 
   # 动态注册器
   # 用于动态注册其他 Actor 的 Actor
 - name: "DYNAMIC_REGISTER"
-  unique: true
-  weight: 80
-  limit: 0
 
 # actor 控制
 - name: "CONTROL"
-  unique : true
-  weight : 40
-  limit : 0
 
-  # 全局聊天
-  # 处理全局聊天消息的 Actor
-  # 选项:
-  #   - channel: 聊天频道名称
-- name: "GLOBAL_CHAT"
-  unique: false
-  weight: 3000
-  limit: 1
+# 聊天
+# 选项:
+#   - channel: 聊天频道名称
+- name: "CHAT"
 
-# 私聊
-- name: "PRIVATE_CHAT"
-  unique: false
-  weight: 40
-  limit: 10000
-
-  # 聊天路由
-  # 用于路由聊天消息的 Actor
+# 聊天路由
+# 用于路由聊天消息的 Actor
 - name: "ROUTER_CHAT"
-  unique: true
-  weight: 80
-  limit: 1

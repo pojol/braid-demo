@@ -7,7 +7,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.3
 	github.com/labstack/echo/v4 v4.12.0
-	github.com/pojol/braid v0.0.0-20241007032411-30665615c54a
+	github.com/pojol/braid v0.0.0-20241016153557-5149932eb351
 	github.com/pojol/gobot v0.4.4
 	github.com/stretchr/testify v1.9.0
 	github.com/yuin/gopher-lua v1.1.1

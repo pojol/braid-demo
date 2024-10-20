@@ -2,7 +2,7 @@ package main
 
 import (
 	"braid-demo/actors"
-	"braid-demo/config"
+	"braid-demo/template"
 	"fmt"
 	"os"
 
@@ -32,27 +32,18 @@ func main() {
 	// mock
 	os.Setenv("NODE_ID", "chat-1")
 
-	nodeCfg, actorTypes, err := config.ParseConfig("conf.yml", "../../config/actor_types.yml")
+	nodeCfg, err := template.ParseConfig("conf.yml", "../../config/actor_types.yml")
 	if err != nil {
 		panic(err)
 	}
 
-	factory := actors.BuildActorFactory(actorTypes)
+	factory := actors.BuildActorFactory(nodeCfg.Actors)
+	loader := actors.BuildDefaultActorLoader(factory)
 
 	nod := node.BuildProcessWithOption(
-		core.WithSystem(node.BuildSystemWithOption(nodeCfg.ID, factory)),
+		core.WithLoader(loader),
+		core.WithSystem(node.BuildSystemWithOption(nodeCfg.ID, loader)),
 	)
-
-	for _, regActor := range nodeCfg.Actors {
-		builder := nod.System().Loader(regActor.Name).WithID(nodeCfg.ID + "_" + regActor.Name)
-		for key, val := range regActor.Options {
-			builder.WithOpt(key, val)
-		}
-		_, err = builder.Build()
-		if err != nil {
-			panic(err.Error())
-		}
-	}
 
 	err = nod.Init()
 	if err != nil {

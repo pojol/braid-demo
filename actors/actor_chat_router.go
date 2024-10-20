@@ -1,7 +1,7 @@
 package actors
 
 import (
-	"braid-demo/events"
+	"braid-demo/chains"
 	"context"
 
 	"github.com/pojol/braid/core"
@@ -21,5 +21,5 @@ func NewRouterChatActor(p core.IActorBuilder) core.IActor {
 func (a *chatRouterActor) Init(ctx context.Context) {
 	a.Runtime.Init(ctx)
 
-	a.RegisterEvent(events.EvChatSendMessage, events.MakeChatSendCmd)
+	a.RegisterEvent(chains.EvChatSendMessage, chains.MakeChatSendCmd)
 }

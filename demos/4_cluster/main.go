@@ -2,17 +2,15 @@ package main
 
 import (
 	"braid-demo/actors"
-	"braid-demo/constant"
+	"braid-demo/template"
 	"flag"
 	"fmt"
 	"os"
-	"strconv"
 
 	"github.com/pojol/braid/3rd/mgo"
 	"github.com/pojol/braid/3rd/redis"
 	"github.com/pojol/braid/core"
 	"github.com/pojol/braid/core/cluster/node"
-	"github.com/pojol/braid/def"
 	"github.com/pojol/braid/lib/log"
 	"github.com/pojol/braid/lib/span"
 	"github.com/pojol/braid/lib/tracer"
@@ -30,8 +28,6 @@ import (
 func main() {
 	// Add flag parsing
 	id := flag.String("id", "", "Node ID (required)")
-	iPort := flag.String("iport", "", "Internal port number (optional)")
-	ePort := flag.String("eport", "", "External port number (optional)")
 
 	flag.Parse()
 
@@ -42,14 +38,6 @@ func main() {
 	}
 
 	nodeid := *id
-	var InternalPort, ExternalPort string
-	if *iPort != "" {
-		InternalPort = *iPort
-	}
-
-	if *ePort != "" {
-		ExternalPort = *ePort
-	}
 
 	slog, _ := log.NewServerLogger(nodeid)
 	log.SetSLog(slog)
@@ -61,6 +49,11 @@ func main() {
 	}))
 	if err != nil {
 		panic(fmt.Errorf("mongo build err %v", err.Error()))
+	}
+
+	nodeCfg, err := template.ParseConfig("conf.yml", "../../config/actor_types.yml")
+	if err != nil {
+		panic(err)
 	}
 
 	// mock redis
@@ -79,53 +72,18 @@ func main() {
 	)
 
 	var sysopts []node.SystemOption
-
 	sysopts = append(sysopts, node.SystemWithTracer(trc))
-	if InternalPort != "" {
-		iport, err := strconv.Atoi(InternalPort)
-		if err != nil {
-			panic(err)
-		}
-		sysopts = append(sysopts, node.SystemWithAcceptor(iport))
-	}
+
+	factory := actors.BuildActorFactory(nodeCfg.Actors)
+	loader := actors.BuildDefaultActorLoader(factory)
 
 	nod := node.BuildProcessWithOption(
+		core.WithNodeID(nodeid),
+		core.WithLoader(loader),
 		core.WithSystem(
-			node.BuildSystemWithOption(nodeid, actors.BuildActorFactory(), sysopts...),
+			node.BuildSystemWithOption(nodeid, loader, sysopts...),
 		),
 	)
-
-	if ExternalPort != "" {
-		_, err = nod.System().Loader(constant.ActorWebsoketAcceptor).WithID("1").WithOpt("port", ExternalPort).Build()
-		if err != nil {
-			panic(err.Error())
-		}
-	}
-	_, err = nod.System().Loader(constant.ActorLogin).WithID(nodeid + "_login").Build()
-	if err != nil {
-		panic(err.Error())
-	}
-	_, err = nod.System().Loader(def.ActorDynamicPicker).WithID(nodeid + "_picker").Build()
-	if err != nil {
-		panic(err.Error())
-	}
-
-	_, err = nod.System().Loader(def.ActorDynamicRegister).WithID(nodeid + "_register").Build()
-	if err != nil {
-		panic(err.Error())
-	}
-
-	_, err = nod.System().Loader(constant.ActorGlobalChat).
-		WithID(nodeid+"_"+constant.ActorGlobalChat).
-		WithOpt("channel", constant.ActorGlobalChat).Build()
-	if err != nil {
-		panic(err.Error())
-	}
-	_, err = nod.System().Loader(constant.ActorRouterChat).
-		WithID(nodeid + "_" + constant.ActorRouterChat).Build()
-	if err != nil {
-		panic(err.Error())
-	}
 
 	err = nod.Init()
 	if err != nil {

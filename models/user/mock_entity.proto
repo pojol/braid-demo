@@ -11,7 +11,7 @@ message EntityBagModule {
   
   // key: Dictionary ID of the item
   // value: For a given dictionary ID, there may be multiple non-stackable item instances
-  map<int32, commproto.ItemList> Bag = 2;
+  map<int32, commproto.ItemList> Bag = 2 [(gogoproto.moretags) = "bson:\"bag\""];
 }
 
 message EntityTimeInfoModule {

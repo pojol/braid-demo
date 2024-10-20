@@ -1,10 +1,10 @@
 package actors
 
 import (
-	"braid-demo/config"
+	"braid-demo/chains"
 	"braid-demo/constant"
-	"braid-demo/events"
 	"braid-demo/models/user"
+	"braid-demo/template"
 	"context"
 	"fmt"
 
@@ -24,7 +24,7 @@ type mockUserActor struct {
 func NewUserActor(p core.IActorBuilder) core.IActor {
 	return &mockUserActor{
 		Runtime:   &actor.Runtime{Id: p.GetID(), Ty: p.GetType(), Sys: p.GetSystem()},
-		gateActor: p.GetOpt("gateActor").(string),
+		gateActor: p.GetOpt("gateActor"),
 		entity:    user.NewEntityWapper(p.GetID()),
 	}
 }
@@ -36,18 +36,18 @@ func (a *mockUserActor) Init(ctx context.Context) {
 		panic(fmt.Errorf("load user actor err %v", err.Error()))
 	}
 
-	a.Context().WithValue(events.UserStateType{}, a.entity)
+	a.Context().WithValue(chains.UserStateType{}, a.entity)
 
-	a.RegisterEvent(events.EvUserUseItem, events.MakeUserUseItem)
-	a.RegisterEvent(events.EvUserChatAddChannel, events.MakeChatAddChannel)
-	a.RegisterEvent(events.EvUserChatRemoveChannel, events.MakeChatRemoveChannel)
+	a.RegisterEvent(chains.EvUserUseItem, chains.MakeUserUseItem)
+	a.RegisterEvent(chains.EvUserChatAddChannel, chains.MakeChatAddChannel)
+	a.RegisterEvent(chains.EvUserChatRemoveChannel, chains.MakeChatRemoveChannel)
 
-	a.Sys.Loader(config.ACTOR_PRIVATE_CHAT).
+	a.Sys.Loader(template.ACTOR_CHAT).
 		WithID("chat."+constant.ChatPrivateChannel+"."+a.Id).
 		WithOpt("channel", constant.ChatPrivateChannel).
-		WithOpt("actorID", a.Id).WithPicker().Build()
+		WithOpt("actorID", a.Id).Picker()
 
-	err = a.Call(router.Target{ID: def.SymbolLocalFirst, Ty: config.ACTOR_GLOBAL_CHAT, Ev: events.EvChatChannelAddUser},
+	err = a.Call(router.Target{ID: def.SymbolLocalFirst, Ty: template.ACTOR_CHAT, Ev: chains.EvChatChannelAddUser},
 		router.NewMsgWrap(context.TODO()).WithReqHeader(&router.Header{
 			Token: a.entity.User.Token,
 			Custom: map[string]string{
@@ -57,7 +57,7 @@ func (a *mockUserActor) Init(ctx context.Context) {
 		}).Build(),
 	)
 	if err != nil {
-		log.WarnF("system call %v err %v", events.EvChatChannelAddUser, err.Error())
+		log.WarnF("system call %v err %v", chains.EvChatChannelAddUser, err.Error())
 	}
 
 	// one minute try sync to cache
@@ -72,7 +72,9 @@ func (a *mockUserActor) Init(ctx context.Context) {
 
 func (a *mockUserActor) Exit() {
 
-	a.Call(router.Target{ID: def.SymbolLocalFirst, Ty: config.ACTOR_GLOBAL_CHAT, Ev: events.EvChatChannelRmvUser},
+	a.entity.Sync(context.TODO())
+
+	a.Call(router.Target{ID: def.SymbolLocalFirst, Ty: template.ACTOR_CHAT, Ev: chains.EvChatChannelRmvUser},
 		router.NewMsgWrap(context.TODO()).WithReqHeader(&router.Header{
 			Token: a.entity.User.Token,
 			Custom: map[string]string{

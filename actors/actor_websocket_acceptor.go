@@ -1,10 +1,10 @@
 package actors
 
 import (
-	"braid-demo/config"
-	"braid-demo/events"
+	"braid-demo/chains"
 	"braid-demo/models/gameproto"
 	"braid-demo/models/session"
+	"braid-demo/template"
 	"bytes"
 	"context"
 	"encoding/binary"
@@ -50,7 +50,7 @@ func NewWSAcceptorActor(p core.IActorBuilder) core.IActor {
 	return &websocketAcceptorActor{
 		Runtime: &actor.Runtime{Id: p.GetID(), Ty: p.GetType(), Sys: p.GetSystem()},
 		echoptr: echoptr,
-		Port:    p.GetOpt("port").(string),
+		Port:    p.GetOpt("port"),
 		state: &session.State{
 			SessionMap: make(map[string]*websocket.Conn),
 		},
@@ -60,7 +60,7 @@ func NewWSAcceptorActor(p core.IActorBuilder) core.IActor {
 func (a *websocketAcceptorActor) Init(ctx context.Context) {
 	a.Runtime.Init(ctx)
 
-	a.Context().WithValue(events.SessionState{}, a.state)
+	a.Context().WithValue(chains.SessionState{}, a.state)
 
 	recovercfg := middleware.DefaultRecoverConfig
 	recovercfg.LogErrorFunc = func(c echo.Context, err error, stack []byte) error {
@@ -72,8 +72,8 @@ func (a *websocketAcceptorActor) Init(ctx context.Context) {
 
 	a.echoptr.GET("/ws", a.received)
 
-	a.RegisterEvent(events.EvLogin, events.MakeWSLogin)
-	a.RegisterEvent(events.EvWebsoketNotify, events.MakeWebsocketNotify)
+	a.RegisterEvent(chains.EvLogin, chains.MakeWSLogin)
+	a.RegisterEvent(chains.EvWebsoketNotify, chains.MakeWebsocketNotify)
 }
 
 func (a *websocketAcceptorActor) received(c echo.Context) error {
@@ -127,12 +127,12 @@ func (a *websocketAcceptorActor) received(c echo.Context) error {
 		var actorid, actorty string
 
 		switch header.Event {
-		case events.EvLogin:
+		case chains.EvLogin:
 			actorid = def.SymbolLocalFirst
-			actorty = config.ACTOR_LOGIN
-		case events.EvChatSendMessage:
+			actorty = template.ACTOR_LOGIN
+		case chains.EvChatSendMessage:
 			actorid = def.SymbolLocalFirst
-			actorty = config.ACTOR_ROUTER_CHAT
+			actorty = template.ACTOR_ROUTER_CHAT
 		default:
 			eid, err := token.Parse(header.Token)
 			if err != nil {
@@ -141,7 +141,7 @@ func (a *websocketAcceptorActor) received(c echo.Context) error {
 			}
 
 			actorid = eid
-			actorty = config.ACTOR_USER
+			actorty = template.ACTOR_USER
 			bh.Token = header.Token
 		}
 
@@ -164,7 +164,7 @@ func (a *websocketAcceptorActor) received(c echo.Context) error {
 		buf := bufferPool.Get().(*bytes.Buffer)
 		buf.Reset() // Clear the buffer for reuse
 
-		if header.Event == events.EvLogin {
+		if header.Event == chains.EvLogin {
 			userToken = sendmsg.Res.Header.Token
 			a.state.AddSession(userToken, ws)
 		}
